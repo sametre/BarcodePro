@@ -8,6 +8,7 @@ public sealed class WindowsPrintService
     public void Print(LabelTemplate template,IReadOnlyList<Product> products,PrinterProfile profile,DateTime at)
     {
         using var document=new PrintDocument();document.PrinterSettings.PrinterName=profile.PrinterName;
+        document.PrinterSettings.PrintToFile=false;
         if(!document.PrinterSettings.IsValid)throw new InvalidOperationException("Yazıcı bulunamadı veya erişim reddedildi.");
         document.DocumentName="Barcode Pro — "+template.Name;document.PrintController=new StandardPrintController();
         document.DefaultPageSettings.PaperSize=new PaperSize("Barcode Pro",(int)Math.Round(template.PageWidthMm*100/25.4),(int)Math.Round(template.PageHeightMm*100/25.4));document.DefaultPageSettings.Margins=new Margins(0,0,0,0);document.OriginAtMargins=false;

@@ -42,10 +42,12 @@ public sealed class RawPrinterService
     public void Send(string printerName,byte[] data,string title)
     {
         if (data.Length == 0) throw new InvalidOperationException("Baskı verisi boş.");
+        var info=WindowsPrinterInterop.Info(printerName);
+        BarcodePrinter.Services.Printing.PrinterRouting.ValidatePort(printerName,info.PortName);
         WindowsPrinterInterop.Ensure(WindowsPrinterInterop.OpenPrinter(printerName,out var handle,IntPtr.Zero));
         using(handle)
         {
-            var doc = new WindowsPrinterInterop.DocInfo { DocName=title,DataType="RAW" };
+            var doc = new WindowsPrinterInterop.DocInfo { DocName=title,DataType="RAW",OutputFile=null };
             bool started=false;
             try
             {

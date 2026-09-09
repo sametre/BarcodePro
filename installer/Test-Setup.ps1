@@ -1,4 +1,4 @@
-param([string]$Setup = "$PSScriptRoot\..\artifacts\installer\BarcodePro-2.1.0-beta.1-Setup-x64.exe")
+param([string]$Setup = "$PSScriptRoot\..\artifacts\installer\BarcodePro-2.1.0-beta.2-Setup-x64.exe")
 $ErrorActionPreference='Stop'
 $repository=(Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $testRoot=Join-Path $repository ('artifacts\SetupSmoke-'+[Guid]::NewGuid())
@@ -26,3 +26,4 @@ try {
 }
 if((Test-Path -LiteralPath (Join-Path $installDir 'BarcodePrinter.exe')) -or (Test-Path -LiteralPath $uninstallKey)){throw 'Test kurulumu tam kaldırılamadı.'}
 Write-Output "PASS: Kaldırma başarılı. Günlükler: $testRoot"
+

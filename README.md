@@ -1,15 +1,17 @@
-# Barcode Pro 2.1 Beta 1
+# Barcode Pro 2.1 Beta 2
 
 Windows için stok yönetimi, MySQL ürün aktarımı ve TSC etiket baskısı uygulaması.
 
 ## Beta kurulumu
+
+Beta 2, TSC seçildiğinde doğrudan Raw TSPL gönderimini otomatik seçer. Yazıcı adı değiştirilmişse Windows sürücüsünden de algılanır. TTP-244CE 203 DPI kullanır. `FILE:` / `PORTPROMPT:` gibi dosya portları baskıdan önce reddedilir; Windows **Yazıcı özellikleri → Bağlantı Noktaları** bölümünden cihazın gerçek USB/ağ portu seçilmelidir. Uygulama Windows port ayarını değiştirmez. Baskı ekranı seçili bağlantı portunu gösterir.
 
 Setup.exe GitHub Releases bölümünde yayımlanır. Windows 10 (1809+) / Windows 11 64 bit desteklenir; kurulum .NET çalışma zamanını içerir. İlk giriş **owner / owner**; bu beta sürümünde sabittir.
 
 - **Ayarlar → MySQL bağlantısı:** sunucu ve kolon eşleştirme, bağlantı testi, önizleme ve tek yönlü aktarım. [Bağlantı kılavuzu](docs/MYSQL-CONNECTION.md).
 - **Ayarlar → Firma ve etiket:** firma adı/logo ve 60 × 40 mm, 203 DPI TTP-244CE şablonu.
 - Kurulum dosyası imzasızdır. Canlı müşteri MySQL bağlantısı ve fiziksel yazıcı çıktısı ayrıca doğrulanmalıdır.
-- 135 otomatik kontrol; kurulum/kaldırma ve 467 yayın dosyasının bütünlüğü doğrulandı.
+- 151 otomatik kontrol; kurulum/kaldırma ve 467 yayın dosyasının bütünlüğü doğrulandı.
 
 ![Dashboard](docs/images/dashboard-refresh.png)
 
@@ -22,7 +24,7 @@ Windows, .NET SDK (slnx destekli) ve Inno Setup 6.7+ gerekir:
 ./installer/Test-Setup.ps1
 ```
 
-Çıktı: `artifacts/installer/BarcodePro-2.1.0-beta.1-Setup-x64.exe`. SHA256 dosyası aynı dizindedir. Kaynak depoya envanter, bağlantı şifreleri, derleme çıktıları ve yerel yedekler alınmaz.
+Çıktı: `artifacts/installer/BarcodePro-2.1.0-beta.2-Setup-x64.exe`. SHA256 dosyası aynı dizindedir. Kaynak depoya envanter, bağlantı şifreleri, derleme çıktıları ve yerel yedekler alınmaz.
 
 Mevcut .NET 8 / Windows Forms stok uygulamasının üzerine eklenen barkod tasarım ve baskı çalışma alanı. Ücretli UI paketi kullanılmaz. Barkod üretimi için Apache-2.0 lisanslı ZXing.Net 0.16.11 kullanılır.
 
@@ -108,4 +110,6 @@ TSPL sözdizimi [TSC TSPL/TSPL2 3.0 kılavuzuna](https://fs.tscprinters.com/syst
 ## Güncel menü düzeni
 
 Referans ERP ekranına uygun olarak geniş ribbon yerine tek sıra ikonlu modül menüsü kullanılır. **Giriş / Ürünler / Stok / Etiket / Baskı / Raporlar / Yazıcılar / Ayarlar** başlıklarına basınca ilgili alt işlemler açılır. Hemen altındaki mavi şeritte açılan ekranlar arasında geçiş yapılır. Dashboard kartları ve Yeni ürün düğmesi pencere büyütüldüğünde gereksiz yere uzamaz.
+
+
 

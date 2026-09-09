@@ -7,7 +7,7 @@ public sealed class PrinterSettingsService
 {
     private readonly string path = Path.Combine(JsonStore.Root,"printers.json");
     public List<PrinterProfile> Profiles() => File.Exists(path) ? JsonStore.Read<List<PrinterProfile>>(path) : [];
-    public PrinterProfile Get(string name) => Profiles().FirstOrDefault(p=>p.PrinterName==name) ?? new PrinterProfile { PrinterName=name };
+    public PrinterProfile Get(string name) => PrinterRouting.Resolve(Profiles().FirstOrDefault(p=>p.PrinterName==name) ?? new PrinterProfile { PrinterName=name });
     public void Save(PrinterProfile profile) { profile.Calibration.Validate(); if (!new[] {203,300,600}.Contains(profile.Dpi)) throw new InvalidOperationException("DPI 203, 300 veya 600 olmalıdır."); var items=Profiles(); items.RemoveAll(p=>p.PrinterName==profile.PrinterName);items.Insert(0,profile);JsonStore.Save(path,items); }
     public Task<List<PrinterInfo>> DiscoverAsync() => Task.Run(() =>
     {

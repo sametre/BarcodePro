@@ -12,8 +12,9 @@ try {
     if (!(Test-Path -LiteralPath $Compiler)) { throw 'Inno Setup 6.7+ ISCC.exe yolunu -Compiler ile belirtin.' }
     & $Compiler installer/BarcodePro.iss
     if ($LASTEXITCODE -ne 0) { throw 'Setup derlemesi başarısız.' }
-    $setup = Join-Path $repository 'artifacts/installer/BarcodePro-2.1.0-beta.1-Setup-x64.exe'
+    $setup = Join-Path $repository 'artifacts/installer/BarcodePro-2.1.0-beta.2-Setup-x64.exe'
     $hash = (Get-FileHash -LiteralPath $setup -Algorithm SHA256).Hash
     Set-Content -LiteralPath ($setup + '.sha256') -Value ($hash + '  ' + [IO.Path]::GetFileName($setup)) -Encoding ascii
     Get-Item -LiteralPath $setup | Select-Object FullName,Length
 } finally { Pop-Location }
+

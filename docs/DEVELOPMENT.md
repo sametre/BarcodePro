@@ -164,3 +164,10 @@
 - .NET dahil win-x64 yayın, Inno Setup Türkçe kurulum, kullanıcı bazlı dizin, masaüstü/başlat menüsü kısayolları ve kaldırma desteği. Kurulum/kaldırma kullanıcı veri dizinine dokunmaz.
 - Build: installer/Build-Setup.ps1. Kurulum testi: installer/Test-Setup.ps1. Paket: artifacts/installer/BarcodePro-2.1.0-beta.1-Setup-x64.exe; SHA256 dosyası aynı dizinde.
 - 135 otomatik kontrol geçti; 467 yayın dosyasının kurulum sonrası SHA256 eşleşmesi, .NET dahil paket yapısı, kaldırma kaydı ve kaldırma doğrulandı. Temiz müşteri Windows ortamında çalıştırma, canlı MySQL ve fiziksel baskı henüz doğrulanmadı. Setup kod imzalama sertifikasıyla imzalanmadı.
+
+## 2.1.0-beta.2 TSC PRN düzeltmesi
+- PrinterRouting, TSC adı/sürücüsü ve TTP-244CE modelini kullanarak doğrudan Raw TSPL moduna yönlendirir. Eski profil kalibrasyonu korunur, 244CE için 203 DPI uygulanır.
+- FILE:/PORTPROMPT: ve dosya yolu portları kuyruk ön kontrolünde ve RAW gönderimi başlamadan tekrar reddedilir. RAW DOC_INFO output file null olarak açıkça belirlenir. WindowsDriver yolunda PrintToFile=false ayarlanır.
+- Baskı ekranında bağlantı portu, TSC için kilitli doğrudan baskı seçimi ve yanlış port açıklaması vardır. Windows sistemindeki portlar otomatik değiştirilmez.
+- 151 kontrol başarılı. TSC seçim UI akışı, eski profiller, sürücüden algılama, fiziksel/yanlış portlar test edildi. Beta 2 kurulum/kaldırma ve 467 dosya bütünlüğü doğrulandı. Geliştirme bilgisayarında yalnızca sanal yazıcılar bulunduğundan fiziksel çıktı doğrulanmadı.
+- Kaynak: https://learn.microsoft.com/en-us/dotnet/api/system.drawing.printing.printersettings.printtofile

@@ -1,9 +1,15 @@
-BARCODE PRO 2.1 - BETA 1
+BARCODE PRO 2.1 - BETA 2
 
 İLK GİRİŞ
 Kullanıcı kodu: owner
 Şifre: owner
 Bu beta sürümünde giriş bilgileri sabittir.
+
+TSC DOĞRUDAN BASKI DÜZELTMESİ
+TSC seçildiğinde doğrudan Raw TSPL otomatik seçilir.
+FILE: / PORTPROMPT: portu seçiliyse baskı başlamaz.
+Windows > Yazıcı özellikleri > Bağlantı Noktaları bölümünde
+yazıcının gerçek USB veya ağ portunu seçin. Uygulama portu değiştirmez.
 
 FİRMA VE YAZICI
 Ayarlar > Firma ve etiket bölümünde firma adını ve logoyu kaydedin.
@@ -36,3 +42,5 @@ BETA DOĞRULAMA
 Giriş, şablon, barkod, stok ve MySQL aktarım kuralları otomatik kontrol edildi.
 Müşterinin canlı MySQL sunucusu ve fiziksel TSC baskısı henüz doğrulanmadı.
 Kurulum dosyası kod imzalama sertifikasıyla imzalanmamıştır.
+
+

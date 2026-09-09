@@ -20,6 +20,10 @@ public sealed class PrintQueueService
     public async Task EnqueueAsync(PrintJob input)
     {
         var job=JsonStore.Clone(input);job.Id=Guid.NewGuid();job.Time=DateTime.Now;job.Status=PrintJobStatus.Queued;
+        if(string.IsNullOrWhiteSpace(job.Printer.PrinterName))throw new InvalidOperationException("Lütfen yazıcı seçin.");
+        var target=WindowsPrinterInterop.Info(job.Printer.PrinterName);
+        job.Printer=PrinterRouting.Resolve(job.Printer,target.DriverName??"");
+        if(job.Printer.Mode==PrintMode.RawTspl)PrinterRouting.ValidatePort(job.Printer.PrinterName,target.PortName);
         ValidationService.Template(job.Template);job.Printer.Calibration.Validate();
         Ttp244CePrinter.Validate(job.Template,job.Printer);
         if(job.Items.Count==0||job.Items.Any(i=>i.Quantity<1)||job.Items.Sum(i=>(long)i.Quantity)>10000)throw new InvalidOperationException("Toplam etiket adedi 1–10000 olmalıdır.");
@@ -34,6 +38,7 @@ public sealed class PrintQueueService
             await Task.Run(()=>
             {
                 var info=WindowsPrinterInterop.Info(job.Printer.PrinterName);
+                if(job.Printer.Mode==PrintMode.RawTspl)PrinterRouting.ValidatePort(job.Printer.PrinterName,info.PortName);
                 if((info.Status&0x80)!=0)throw new InvalidOperationException("Yazıcı çevrimdışı. Bağlantıyı kontrol edin.");
                 var products=job.Items.SelectMany(i=>Enumerable.Repeat(i.Product,i.Quantity)).ToList();
                 if(job.Printer.Mode==PrintMode.WindowsDriver)new WindowsPrintService().Print(job.Template,products,job.Printer,job.Time);

@@ -15,6 +15,8 @@ public sealed class BarcodePrintForm : AppDialog
     private readonly PictureBox preview=new(){Dock=DockStyle.Fill,SizeMode=PictureBoxSizeMode.Zoom,BackColor=Color.White};
     private readonly Label total=new(){AutoSize=true},error=new(){Dock=DockStyle.Bottom,Height=44};
     private readonly List<PrintItem> items=[];private readonly PrinterSettingsService printerService=new();
+    private readonly Dictionary<string,PrinterInfo> discovered=new(StringComparer.OrdinalIgnoreCase);
+    private readonly AppTextBox portInfo=new(){ReadOnly=true};
     public BarcodePrintForm(IEnumerable<Product> products,IEnumerable<Product>? selected=null,LabelTemplate? template=null)
     {
         this.products=products.ToList();Text="Barkod Yazdır • Toplu etiket baskısı";Size=new Size(1320,800);MinimumSize=new Size(1060,650);
@@ -34,19 +36,19 @@ public sealed class BarcodePrintForm : AppDialog
         void Field(string label,Control control)=>options.AddField(label,control,36);
         var available=new TemplateService().List();if(template!=null){available.RemoveAll(t=>t.Id==template.Id);available.Insert(0,template);}if(available.Count==0)available.Add(TemplateService.Standard());templates.Items.AddRange(available.Cast<object>().ToArray());templates.SelectedIndex=0;
         mode.Items.AddRange(["Windows Driver","Raw TSPL (TSC)"]);mode.SelectedIndex=0;dpi.Items.AddRange([203,300,600]);dpi.SelectedIndex=0;media.Items.AddRange(Enum.GetNames<MediaKind>());media.SelectedIndex=(int)((LabelTemplate)templates.SelectedItem!).Media;
-        Field("Yazıcı",printers);Field("Şablon",templates);Field("Baskı modu",mode);Field("DPI",dpi);Field("Medya",media);Field("Adet çarpanı",copies);Field("Önizleme sayfa",previewPage);previewPage.ValueChanged+=(_,_)=>RefreshPreview();
+        Field("Yazıcı",printers);Field("Bağlantı portu",portInfo);Field("Şablon",templates);Field("Baskı modu",mode);Field("DPI",dpi);Field("Medya",media);Field("Adet çarpanı",copies);Field("Önizleme sayfa",previewPage);previewPage.ValueChanged+=(_,_)=>RefreshPreview();error.Height=76;
         right.Controls.Add(preview);right.Controls.Add(options);right.Controls.Add(error);
         var bottom=new AppToolbar{Dock=DockStyle.Bottom};bottom.Controls.Add(total);bottom.Controls.Add(Form1.Button("Önizlemeyi yenile",RefreshPreview,false));var print=Form1.Button("Etiketleri yazdır",()=>{});print.Click+=async(_,_)=>{if(!ValidateChildren())return;print.Enabled=false;try{var job=CreateJob();await PrintQueueService.Instance.EnqueueAsync(job);error.Text="İş işlendi. Baskı kuyruğundan sonucu kontrol edin.";}catch(Exception ex){JsonStore.Log(ex);error.Text=ex.Message;}finally{print.Enabled=true;}};bottom.Controls.Add(print);
         split.Controls.Add(leftSection,0,0);split.Controls.Add(middleSection,1,0);split.Controls.Add(rightSection,2,0);Controls.Add(split);Controls.Add(bottom);
         templates.SelectedIndexChanged+=(_,_)=>{media.SelectedIndex=(int)((LabelTemplate)templates.SelectedItem!).Media;RefreshPreview();};dpi.SelectedIndexChanged+=(_,_)=>RefreshPreview();copies.ValueChanged+=(_,_)=>{UpdateTotal();RefreshPreview();};
-        printers.SelectedIndexChanged+=(_,_)=>{try{var profile=printerService.Get(printers.Text);dpi.SelectedItem=profile.Dpi;mode.SelectedIndex=(int)profile.Mode;RefreshPreview();}catch(Exception ex){error.Text=ex.Message;}};
-        Shown+=async(_,_)=>{try{var found=await printerService.DiscoverAsync();if(IsDisposed)return;printers.Items.AddRange(found.Select(p=>p.Name).ToArray());if(printers.Items.Count>0)printers.SelectedIndex=Math.Max(0,printers.Items.IndexOf(printerService.Profiles().FirstOrDefault()?.PrinterName??""));else error.Text="Windows'a kurulu yazıcı bulunamadı. Önizleme kullanılabilir.";}catch(Exception ex){error.Text=ex.Message;}};
+        printers.SelectedIndexChanged+=(_,_)=>{try{var detail=discovered.GetValueOrDefault(printers.Text);var profile=PrinterRouting.Resolve(printerService.Get(printers.Text),detail?.Driver??"");portInfo.Text=detail?.Port??"Okunamadı";dpi.SelectedItem=profile.Dpi;mode.SelectedIndex=(int)profile.Mode;mode.Enabled=!(PrinterRouting.IsTsc(profile.PrinterName,detail?.Driver??"")||profile.Model==Ttp244CePrinter.Model);dpi.Enabled=profile.Model!=Ttp244CePrinter.Model;RefreshPreview();}catch(Exception ex){error.Text=ex.Message;}};
+        Shown+=async(_,_)=>{try{var found=await printerService.DiscoverAsync();if(IsDisposed)return;foreach(var printer in found)discovered[printer.Name]=printer;printers.Items.AddRange(found.Select(p=>p.Name).ToArray());if(printers.Items.Count>0)printers.SelectedIndex=Math.Max(0,printers.Items.IndexOf(printerService.Profiles().FirstOrDefault()?.PrinterName??""));else error.Text="Windows'a kurulu yazıcı bulunamadı. Önizleme kullanılabilir.";}catch(Exception ex){error.Text=ex.Message;}};
         Filter();if(selected!=null)foreach(var p in selected)Add(p);UpdateTotal();
     }
     private void Add(Product p){var existing=items.FirstOrDefault(i=>i.Product.Id==p.Id);if(existing!=null)existing.Quantity++;else items.Add(new(){Product=p.Copy()});RefreshBasket();}
     private void RefreshBasket(){basket.Rows.Clear();foreach(var i in items)basket.Rows.Add(i.Product.Name,i.Product.Barcode,i.Product.Price.ToString("C2"),i.Quantity);UpdateTotal();RefreshPreview();}
     private void UpdateTotal()=>total.Text=$"Toplam: {items.Sum(i=>(long)i.Quantity)*(int)copies.Value:N0} etiket     ";
-    private PrinterProfile Profile(){var p=printerService.Get(printers.Text);p.Dpi=Convert.ToInt32(dpi.SelectedItem);p.Mode=(PrintMode)mode.SelectedIndex;return p;}
+    private PrinterProfile Profile(){var p=printerService.Get(printers.Text);p.Dpi=Convert.ToInt32(dpi.SelectedItem);p.Mode=(PrintMode)mode.SelectedIndex;return PrinterRouting.Resolve(p,discovered.GetValueOrDefault(printers.Text)?.Driver??"");}
     private LabelTemplate ChosenTemplate(){var t=JsonStore.Clone((LabelTemplate)templates.SelectedItem!);t.Media=(MediaKind)media.SelectedIndex;return t;}
     private PrintJob CreateJob()=>new(){Printer=Profile(),Template=ChosenTemplate(),Items=items.Select(i=>new PrintItem{Product=i.Product.Copy(),Quantity=checked(i.Quantity*(int)copies.Value)}).ToList()};
     private void RefreshPreview()
@@ -57,7 +59,8 @@ public sealed class BarcodePrintForm : AppDialog
             long totalLabels=items.Sum(i=>(long)i.Quantity)*(int)copies.Value;if(totalLabels>10000)throw new InvalidOperationException("Toplam etiket adedi en fazla 10000 olabilir.");
             int pages=Math.Max(1,(int)((totalLabels+perPage-1)/perPage));int pageIndex=Math.Min((int)previewPage.Value,pages)-1;
             var pageProducts=items.Count==0?new List<Product>{p}:items.SelectMany(i=>Enumerable.Repeat(i.Product,i.Quantity*(int)copies.Value)).Skip(pageIndex*perPage).Take(perPage).ToList();
-            var bitmap=new LabelPreviewRenderer().RenderSheet(template,pageProducts,profile,DateTime.Now);var old=preview.Image;preview.Image=bitmap;old?.Dispose();error.Text=$"Önizleme: {pageIndex+1}/{pages} · {pageProducts.Count} etiket";}
+            var bitmap=new LabelPreviewRenderer().RenderSheet(template,pageProducts,profile,DateTime.Now);var old=preview.Image;preview.Image=bitmap;old?.Dispose();error.Text=$"Önizleme: {pageIndex+1}/{pages} · {pageProducts.Count} etiket";
+            if(discovered.TryGetValue(printers.Text,out var device)&&profile.Mode==PrintMode.RawTspl){try{PrinterRouting.ValidatePort(printers.Text,device.Port);error.Text+=" · Doğrudan TSPL baskı";}catch(InvalidOperationException ex){error.Text=ex.Message;}}}
         catch(Exception ex){preview.Image?.Dispose();preview.Image=null;error.Text=ex.Message;}
     }
     protected override void Dispose(bool disposing){if(disposing)preview.Image?.Dispose();base.Dispose(disposing);}
