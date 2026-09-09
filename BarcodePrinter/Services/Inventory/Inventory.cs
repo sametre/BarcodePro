@@ -1,0 +1,137 @@
+using System.Text.Json;
+using System.Text.RegularExpressions;
+namespace BarcodePrinter;
+public sealed class Inventory
+{
+    private readonly string path;
+    public InventoryData Data { get; private set; }
+    public static readonly string[] MovementKinds = ["Stok girişi", "Stok çıkışı", "Stok düzeltme", "İade", "Fire"];
+    public Inventory(string path)
+    {
+        this.path = path;
+        Data = File.Exists(path)
+            ? JsonSerializer.Deserialize<InventoryData>(File.ReadAllText(path)) ?? throw new InvalidDataException("Veri dosyası boş.")
+            : new InventoryData();
+    }
+
+    public static bool ValidBarcode(string value) => Regex.IsMatch(value, @"^[A-Za-z0-9\-\.\$/+% ]{4,64}$") && !string.IsNullOrWhiteSpace(value);
+
+    private void Commit(Action<InventoryData> action)
+    {
+        // Mutate a copy; an unsuccessful disk write must never change live stock.
+        var next = JsonSerializer.Deserialize<InventoryData>(JsonSerializer.Serialize(Data))!;
+        action(next);
+        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
+        var temporary = path + ".tmp";
+        using (var stream = new FileStream(temporary, FileMode.Create, FileAccess.Write, FileShare.None))
+        {
+            JsonSerializer.Serialize(stream, next, new JsonSerializerOptions { WriteIndented = true });
+            stream.Flush(true);
+        }
+        if (File.Exists(path)) File.Replace(temporary, path, path + ".bak");
+        else File.Move(temporary, path);
+        Data = next;
+    }
+
+    public void SaveProduct(Product input)
+    {
+        var p = input.Copy();
+        p.Name = p.Name.Trim(); p.Barcode = p.Barcode.Trim(); p.Sku = p.Sku.Trim();
+        if (p.Name.Length == 0 || p.Sku.Length == 0) throw new InvalidOperationException("Ürün adı ve SKU zorunludur.");
+        if (!ValidBarcode(p.Barcode)) throw new InvalidOperationException("Barkod 4–64 karakter olmalı; harf, rakam veya standart Code 39 sembolleri içermelidir.");
+        if (Data.Products.Any(x => x.Id != p.Id && x.Barcode.Equals(p.Barcode, StringComparison.OrdinalIgnoreCase))) throw new InvalidOperationException("Bu barkod başka bir ürüne ait.");
+        if (Data.Products.Any(x => x.Id != p.Id && x.Sku.Equals(p.Sku, StringComparison.OrdinalIgnoreCase))) throw new InvalidOperationException("Bu SKU başka bir ürüne ait.");
+        if (p.Cost < 0 || p.Price < 0 || p.OldPrice < 0 || p.Stock < 0 || p.Minimum < 0 || p.Maximum < p.Minimum) throw new InvalidOperationException("Fiyat ve stok negatif olamaz. Maksimum stok minimumdan küçük olamaz.");
+        Commit(d =>
+        {
+            var old = d.Products.FirstOrDefault(x => x.Id == p.Id);
+            if (old != null) { p.Stock = old.Stock; p.CreatedAt = old.CreatedAt; d.Products.Remove(old); }
+            p.UpdatedAt = DateTime.Now;
+            d.Products.Add(p);
+            if (old == null && p.Stock > 0) d.Movements.Add(new Movement { ProductId = p.Id, ProductName = p.Name, Barcode = p.Barcode, Kind = "Açılış stoğu", Delta = p.Stock, After = p.Stock });
+        });
+    }
+
+    public void Move(Guid id, string kind, decimal quantity, string note)
+    {
+        if (!MovementKinds.Contains(kind)) throw new InvalidOperationException("Geçersiz işlem türü.");
+        if (quantity < 0 || (quantity == 0 && kind != "Stok düzeltme")) throw new InvalidOperationException("Miktar sıfırdan büyük olmalıdır.");
+        if ((kind == "Stok düzeltme" || kind == "Fire") && string.IsNullOrWhiteSpace(note)) throw new InvalidOperationException("Düzeltme ve fire için açıklama zorunludur.");
+        Commit(d =>
+        {
+            var p = d.Products.Single(x => x.Id == id);
+            if (!p.Active) throw new InvalidOperationException("Pasif ürün için stok hareketi yapılamaz.");
+            var delta = kind switch { "Stok çıkışı" or "Fire" => -quantity, "Stok düzeltme" => quantity - p.Stock, _ => quantity };
+            var after = p.Stock + delta;
+            if (after < 0) throw new InvalidOperationException("Yetersiz stok. İşlem mevcut stoğu aşamaz.");
+            if (delta == 0) throw new InvalidOperationException("Yeni stok mevcut stokla aynı.");
+            d.Movements.Add(new Movement { ProductId = id, ProductName = p.Name, Barcode = p.Barcode, Kind = kind, Before = p.Stock, Delta = delta, After = after, Note = note.Trim() });
+            p.Stock = after; p.UpdatedAt = DateTime.Now;
+        });
+    }
+
+    public void Delete(Guid id)
+    {
+        var product = Data.Products.Single(x => x.Id == id);
+        if (product.Stock != 0) throw new InvalidOperationException("Silmek için önce stok sıfırlanmalıdır. Bunun yerine ürünü pasife alabilirsiniz.");
+        Commit(d => d.Products.RemoveAll(x => x.Id == id));
+    }
+
+    public (int Added,int Updated) ImportProducts(IEnumerable<Product> products,IReadOnlyCollection<string> mappedFields,bool updateStock)
+    {
+        var rows=products.Select(p=>p.Copy()).ToList();
+        var allowed=new MySqlSourceSettings().Columns.Keys.ToHashSet();
+        if(mappedFields.Any(f=>!allowed.Contains(f)))throw new InvalidOperationException("Geçersiz aktarım alanı.");
+        if(new[]{nameof(Product.Name),nameof(Product.Barcode),nameof(Product.Sku)}.Any(f=>!mappedFields.Contains(f)))throw new InvalidOperationException("Ad, barkod ve SKU eşleştirmesi zorunlu.");
+        if(rows.Count==0)return(0,0);
+        int added=0,updated=0;
+        Commit(d=>
+        {
+            var barcodes=new HashSet<string>(StringComparer.OrdinalIgnoreCase);var skus=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var byId=d.Products.ToDictionary(p=>p.Id);var barcodeIndex=d.Products.ToDictionary(p=>p.Barcode,StringComparer.OrdinalIgnoreCase);var skuIndex=d.Products.ToDictionary(p=>p.Sku,StringComparer.OrdinalIgnoreCase);var touched=new HashSet<Guid>();
+            foreach(var row in rows)
+            {
+                row.Barcode=row.Barcode.Trim();row.Sku=row.Sku.Trim();
+                if(!barcodes.Add(row.Barcode)||!skus.Add(row.Sku))throw new InvalidOperationException("Kaynakta tekrar eden barkod veya SKU var. Aktarım iptal edildi.");
+                var byBarcode=barcodeIndex.GetValueOrDefault(row.Barcode);
+                var bySku=skuIndex.GetValueOrDefault(row.Sku);
+                if(byBarcode!=null&&bySku!=null&&byBarcode.Id!=bySku.Id)throw new InvalidOperationException("Barkod ve SKU farklı yerel ürünlerle eşleşiyor. Aktarım iptal edildi.");
+                var old=byBarcode??bySku;var next=old?.Copy()??new Product();var before=next.Stock;
+                if(!touched.Add(next.Id))throw new InvalidOperationException("Birden fazla kaynak satırı aynı yerel ürüne eşleşiyor.");
+                foreach(var field in mappedFields)
+                {
+                    if(field==nameof(Product.Stock)&&old!=null&&!updateStock)continue;
+                    var prop=typeof(Product).GetProperty(field)!;prop.SetValue(next,prop.GetValue(row));
+                }
+                if(string.IsNullOrWhiteSpace(next.Name)||string.IsNullOrWhiteSpace(next.Sku)||!ValidBarcode(next.Barcode)||next.Price<0||next.Cost<0||next.OldPrice<0||next.Stock<0||next.Minimum<0||next.Maximum<next.Minimum)
+                    throw new InvalidOperationException("Aktarımda geçersiz ad, barkod, SKU, fiyat veya stok sınırı var. Hiçbir ürün kaydedilmedi.");
+                next.UpdatedAt=DateTime.Now;
+                if(old!=null){barcodeIndex.Remove(old.Barcode);skuIndex.Remove(old.Sku);updated++;}else added++;
+                byId[next.Id]=next;barcodeIndex[next.Barcode]=next;skuIndex[next.Sku]=next;
+                if(next.Stock!=before)d.Movements.Add(new Movement{ProductId=next.Id,ProductName=next.Name,Barcode=next.Barcode,Kind=old==null?"Açılış stoğu":"Stok düzeltme",Before=before,After=next.Stock,Delta=next.Stock-before,Note="MySQL ürün aktarımı"});
+            }
+            d.Products=byId.Values.ToList();
+            if(d.Products.GroupBy(p=>p.Barcode,StringComparer.OrdinalIgnoreCase).Any(g=>g.Count()>1)||d.Products.GroupBy(p=>p.Sku,StringComparer.OrdinalIgnoreCase).Any(g=>g.Count()>1))throw new InvalidOperationException("Aktarım ürün kimliklerinde çakışma oluşturuyor.");
+        });
+        return(added,updated);
+    }
+
+    public void SeedDemo()
+    {
+        if (Data.Products.Count != 0 || Data.Movements.Count != 0) throw new InvalidOperationException("Örnek veriler yalnızca boş envantere eklenebilir.");
+        Commit(d =>
+        {
+            string[] names = ["Espresso çekirdeği", "Tam yağlı süt", "Vanilya şurubu", "Karton bardak 8 oz", "Çikolatalı kurabiye", "Yeşil çay", "Yulaf sütü", "Karamel sos"];
+            string[] cats = ["Kahve", "Süt ürünleri", "Şuruplar", "Ambalaj", "Atıştırmalık", "Çay", "Süt ürünleri", "Şuruplar"];
+            decimal[] stocks = [48, 8, 0, 240, 16, 32, 4, 12];
+            for (int i = 0; i < names.Length; i++)
+            {
+                var p = new Product { Name = names[i], Barcode = "869000000000" + i, Sku = $"BP-{1001 + i}", Category = cats[i], Stock = stocks[i], Minimum = 10, Maximum = 300, Cost = 25 + i * 5, Price = 50 + i * 10, OnMenu = i != 3, Active = i != 7 };
+                d.Products.Add(p);
+                d.Movements.Add(new Movement { ProductId = p.Id, ProductName = p.Name, Barcode = p.Barcode, Kind = "Açılış stoğu", Delta = p.Stock, After = p.Stock, Note = "Örnek veri", At = DateTime.Now.AddDays(-6) });
+            }
+        });
+    }
+}
+
+

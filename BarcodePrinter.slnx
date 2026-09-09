@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="BarcodePrinter/BarcodePrinter.csproj" />
+  <Project Path="BarcodePrinter.Checks/BarcodePrinter.Checks.csproj" />
+</Solution>

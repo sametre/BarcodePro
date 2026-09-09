@@ -1,0 +1,17 @@
+.vs/
+**/bin/
+**/obj/
+*.user
+artifacts/
+*.corrupt-backup
+*.bak
+*.tmp
+.env
+.env.*
+*.pfx
+*.p12
+inventory.json
+mysql-connection.json
+company.json
+printers.json
+print-queue.json
