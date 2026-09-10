@@ -1,5 +1,5 @@
 #define AppName "Barcode Pro Beta"
-#define AppVersion "2.1.0-beta.3"
+#define AppVersion "2.1.0-beta.4"
 #ifndef PublishDir
   #define PublishDir "..\artifacts\publish\win-x64"
 #endif
@@ -7,7 +7,7 @@
 AppId={{ED32C4BC-57DA-43EE-890A-2257A1B2C19D}
 AppName={#AppName}
 AppVersion={#AppVersion}
-AppVerName=Barcode Pro 2.1 Beta 3
+AppVerName=Barcode Pro 2.1 Beta 4
 AppPublisher=Barcode Pro
 DefaultDirName={localappdata}\Programs\Barcode Pro Beta
 DefaultGroupName=Barcode Pro Beta
@@ -17,7 +17,7 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0.17763
 OutputDir=..\artifacts\installer
-OutputBaseFilename=BarcodePro-2.1.0-beta.3-Setup-x64
+OutputBaseFilename=BarcodePro-2.1.0-beta.4-Setup-x64
 SetupIconFile=..\BarcodePrinter\Assets\BarcodePro.ico
 UninstallDisplayIcon={app}\BarcodePrinter.exe
 Compression=lzma2

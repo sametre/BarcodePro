@@ -9,6 +9,10 @@ internal static class ConnectionChecks
         void Check(bool value,string name){if(!value)throw new Exception(name);Console.WriteLine("PASS "+name);count++;}
         void Reject(Action action,string name){try{action();}catch(InvalidOperationException){Check(true,name);return;}throw new Exception(name);}
         var settings=new MySqlSourceSettings{Host="localhost",Database="test",Username="reader"};settings.SetPassword("test-only-password");
+        Check(settings.SslMode==MySqlConnector.MySqlSslMode.Required&&MySqlProductSource.BuildConnectionString(settings).Contains("SSL Mode=Required"),"Default MySQL connection requires encrypted hosting-compatible TLS");
+        settings.SslMode=MySqlConnector.MySqlSslMode.VerifyFull;Check(MySqlProductSource.BuildConnectionString(settings).Contains("SSL Mode=VerifyFull"),"Strict certificate verification remains available");settings.SslMode=MySqlConnector.MySqlSslMode.Required;
+        Check(MySqlProductSource.FriendlyError(1042,"Unable to connect",settings).Contains("TLS hatası değildir")&&MySqlProductSource.FriendlyError(1042,"",settings).Contains("localhost:3306"),"MySQL 1042 diagnostic identifies network and host permission causes");
+        Check(MySqlProductSource.FriendlyError(0,"certificate verify failed",settings).Contains("TLS bağlantısı"),"TLS certificate failures receive specific guidance");
         var settingsPath=Path.Combine(directory,"connection.json");settings.Save(settingsPath);
         Check(!File.ReadAllText(settingsPath).Contains("test-only-password")&&MySqlSourceSettings.Load(settingsPath).GetPassword()=="test-only-password","MySQL password encrypted and recoverable by Windows user");
         Check(MySqlProductSource.BuildSelect(settings,true).EndsWith("LIMIT 0"),"Connection test validates mapped table without loading products");

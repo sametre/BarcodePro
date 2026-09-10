@@ -33,7 +33,7 @@ public static class AppIcons
     }
     public static Bitmap Create(AppIcon icon,Color color,int size=18)
     {
-        var image=new Bitmap(size,size);using var g=Graphics.FromImage(image);g.SmoothingMode=SmoothingMode.AntiAlias;g.ScaleTransform(size/20f,size/20f);using var p=new Pen(color,1.5f){StartCap=LineCap.Round,EndCap=LineCap.Round,LineJoin=LineJoin.Round};
+        var image=new Bitmap(size,size);using var g=Graphics.FromImage(image);g.SmoothingMode=SmoothingMode.AntiAlias;g.PixelOffsetMode=PixelOffsetMode.HighQuality;g.ScaleTransform(size/20f,size/20f);using var p=new Pen(color,1.75f){StartCap=LineCap.Round,EndCap=LineCap.Round,LineJoin=LineJoin.Round};
         void Line(float x,float y,float xx,float yy)=>g.DrawLine(p,x,y,xx,yy);
         void Box(float x,float y,float w,float h)=>g.DrawRectangle(p,x,y,w,h);
         switch(icon)

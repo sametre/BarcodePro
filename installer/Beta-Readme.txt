@@ -1,4 +1,4 @@
-BARCODE PRO 2.1 - BETA 3
+BARCODE PRO 2.1 - BETA 4
 
 İLK GİRİŞ
 Kullanıcı kodu: owner
@@ -24,6 +24,10 @@ TSC yazıcı sürücüsü bu kuruluma dahil değildir; cihaz sürücüsü ayrıc
 
 MYSQL
 Ayarlar > MySQL bağlantısı bölümüne müşteri sunucusunu ve kolonlarını girin.
+Güvenlik için "TLS zorunlu - Hosting uyumlu" seçeneği önerilir.
+1042 hatası çoğunlukla TLS değildir. Hosting panelindeki Uzak MySQL / Allowed
+Hosts listesine bu bilgisayarın IP adresini ekleyin; port, güvenlik duvarı,
+bind-address ve MySQL kullanıcısının host iznini kontrol edin.
 Bağlantıyı test et > Ürünleri getir > Envantere aktar sırasını izleyin.
 Aktarım tek yönlüdür; yerel stok işlemleri MySQL'e geri yazılmaz.
 Sunucu şifresi bu Windows hesabına bağlı şifrelenerek saklanır.

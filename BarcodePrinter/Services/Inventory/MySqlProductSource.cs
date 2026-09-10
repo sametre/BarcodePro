@@ -14,7 +14,7 @@ public sealed class MySqlSourceSettings
     public string Database { get; set; } = "";
     public string Username { get; set; } = "";
     public string ProtectedPassword { get; set; } = "";
-    public MySqlSslMode SslMode { get; set; } = MySqlSslMode.VerifyFull;
+    public MySqlSslMode SslMode { get; set; } = MySqlSslMode.Required;
     public string Table { get; set; } = "products";
     public Dictionary<string,string> Columns { get; set; } = new()
     {
@@ -53,16 +53,36 @@ public sealed class MySqlProductSource
     }
     private MySqlConnection Connection()
     {
+        return new MySqlConnection(BuildConnectionString(settings));
+    }
+    public static string BuildConnectionString(MySqlSourceSettings settings)
+    {
         if(string.IsNullOrWhiteSpace(settings.Host)||string.IsNullOrWhiteSpace(settings.Database)||string.IsNullOrWhiteSpace(settings.Username)||settings.Port is 0 or >65535)
             throw new InvalidOperationException("Sunucu, veritabanı, kullanıcı ve geçerli port girin.");
-        if(!new[]{MySqlSslMode.VerifyFull,MySqlSslMode.Required,MySqlSslMode.Disabled}.Contains(settings.SslMode))throw new InvalidOperationException("Geçersiz TLS seçimi.");
-        return new MySqlConnection(new MySqlConnectionStringBuilder{Server=settings.Host.Trim(),Port=settings.Port,Database=settings.Database.Trim(),UserID=settings.Username.Trim(),Password=settings.GetPassword(),SslMode=settings.SslMode,ConnectionTimeout=10,DefaultCommandTimeout=30,AllowLoadLocalInfile=false,PersistSecurityInfo=false}.ConnectionString);
+        if(!new[]{MySqlSslMode.VerifyFull,MySqlSslMode.VerifyCA,MySqlSslMode.Required,MySqlSslMode.Preferred,MySqlSslMode.Disabled}.Contains(settings.SslMode))throw new InvalidOperationException("Geçersiz TLS seçimi.");
+        return new MySqlConnectionStringBuilder{Server=settings.Host.Trim(),Port=settings.Port,Database=settings.Database.Trim(),UserID=settings.Username.Trim(),Password=settings.GetPassword(),SslMode=settings.SslMode,ConnectionTimeout=10,DefaultCommandTimeout=30,AllowLoadLocalInfile=false,PersistSecurityInfo=false}.ConnectionString;
     }
     public async Task TestAsync(CancellationToken cancellationToken)
     {
         var sql=BuildSelect(settings,true);await using var connection=Connection();await connection.OpenAsync(cancellationToken);
         await using var command=new MySqlCommand(sql,connection);await using var reader=await command.ExecuteReaderAsync(cancellationToken);
     }
+    public static string FriendlyError(MySqlException error,MySqlSourceSettings settings)
+    {
+        return FriendlyError(error.Number,AllMessages(error),settings);
+    }
+    public static string FriendlyError(int number,string details,MySqlSourceSettings settings)
+    {
+        string message=details.ToLowerInvariant();
+        if(number==1042)return $"MySQL 1042: Sunucu bağlantıyı kuramadı veya istemci adresinin adını çözemedi. Bu çoğu zaman TLS hatası değildir. {settings.Host}:{settings.Port} erişimini, güvenlik duvarını, MySQL bind-address ayarını ve kullanıcının bu bilgisayarın IP adresinden bağlanma iznini kontrol edin.";
+        if(message.Contains("certificate")||message.Contains("sertifika")||message.Contains("ssl")||message.Contains("tls")||message.Contains("authenticationexception"))
+            return settings.SslMode==MySqlSslMode.VerifyFull?"TLS sertifikası doğrulanamadı. Hosting standart bir sertifika sunmuyorsa Güvenlik alanından ‘TLS zorunlu · Hosting uyumlu’ seçin. Bağlantı şifreli kalır; sunucu adı doğrulaması yapılmaz.":"TLS bağlantısı kurulamadı. Sunucuda TLS desteğini ve kullanılan MySQL portunu kontrol edin; yalnızca güvenilen yerel ağda TLS kapalı seçeneğini kullanın.";
+        if(number==1045)return "MySQL 1045: Kullanıcı adı veya şifre hatalı ya da bu kullanıcıya uzak bağlantı izni verilmemiş.";
+        if(number==1049)return "MySQL 1049: Veritabanı adı bulunamadı. Laravel .env dosyasındaki DB_DATABASE değerini kontrol edin.";
+        if(message.Contains("timed out")||message.Contains("timeout"))return $"Bağlantı zaman aşımına uğradı. {settings.Host}:{settings.Port} dış ağdan erişilemiyor olabilir; hosting güvenlik duvarına bu bilgisayarın IP adresini ekleyin.";
+        return $"MySQL bağlantısı veya sorgusu başarısız (kod {number}). Sunucu, port, kullanıcı izni, TLS modu, tablo ve kolonları kontrol edin.";
+    }
+    private static string AllMessages(Exception error){var parts=new List<string>();for(Exception? current=error;current!=null;current=current.InnerException)parts.Add(current.GetType().Name+": "+current.Message);return string.Join(" | ",parts);}
     public async Task<List<Product>> ReadAsync(CancellationToken cancellationToken)
     {
         var sql=BuildSelect(settings);await using var connection=Connection();await connection.OpenAsync(cancellationToken);

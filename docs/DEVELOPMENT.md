@@ -178,3 +178,10 @@
 - Başka yazıcı kuyruklarının kullandığı portlar otomatik adaylardan çıkarılır. Birden fazla boş USB/WSD/IP portu varsa kullanıcı baskı ekranında seçim yapar; böylece yanlış cihaza otomatik baskı gönderilmez.
 - Port değişikliği Windows spooler `SetPrinter` API'siyle yapılır ve ayar yeniden okunarak doğrulanır. Baskı kuyruğu ve RAW gönderim aşaması portu tekrar kontrol eder.
 - 152 otomatik kontrol, self-contained yayın ve 467 dosyalı kurulum/kaldırma testi başarılıdır. Fiziksel TSC bu geliştirme bilgisayarında bulunmadığı için gerçek etiket çıktısı müşteri cihazında doğrulanmalıdır.
+
+## 2.1.0-beta.4 MySQL TLS teşhisi ve kurumsal tema
+
+- MySQL bağlantısının varsayılanı, şifrelemeyi zorunlu tutan ve hosting sertifika zincirleriyle çalışan `SslMode=Required` olarak değiştirildi. İsteyen kullanıcı sertifika ve sunucu adı doğrulamalı `VerifyFull` modunu seçebilir.
+- MySQL 1042, sertifika/TLS, 1045, 1049 ve zaman aşımı hataları için ayrı kullanıcı mesajları eklendi. 1042 mesajı uzak MySQL host izni, `bind-address`, port ve güvenlik duvarını işaret eder.
+- Açık ve koyu temalarda siyah/grafit kurumsal palet, siyah işlem düğmeleri ve altın ayrıntılı yeni barkod uygulama simgesi kullanılır.
+- 156 otomatik kontrol başarıyla tamamlandı. Canlı müşteri MySQL hesabı bulunmadığı için gerçek sunucu bağlantısı müşteri ortamında doğrulanmalıdır.

@@ -1,17 +1,17 @@
-# Barcode Pro 2.1 Beta 3
+# Barcode Pro 2.1 Beta 4
 
 Windows için stok yönetimi, MySQL ürün aktarımı ve TSC etiket baskısı uygulaması.
 
 ## Beta kurulumu
 
-Beta 3, TSC seçildiğinde doğrudan Raw TSPL gönderimini otomatik seçer. Yazıcı adı değiştirilmişse Windows sürücüsünden de algılanır. TTP-244CE 203 DPI kullanır. `FILE:` / `PORTPROMPT:` seçiliyse uygulama boşta olan tek USB/ağ portunu otomatik bağlar; Windows izni gerekirse yönetici onayı ister. Birden fazla boş port varsa baskı ekranında seçim yaptırır. Bağlantı portu ekranda görünür.
+Beta 4, MySQL bağlantısında hosting uyumlu şifreli TLS modunu varsayılan yapar ve 1042 hatasında sunucu/port, uzak erişim, `bind-address` ve kullanıcı host iznini açıklayan teşhis gösterir. Arayüz siyah kurumsal renklerle ve yenilenmiş barkod simgesiyle sunulur. Beta 3'te eklenen TSC Raw TSPL ve otomatik fiziksel port ataması korunur.
 
 Setup.exe GitHub Releases bölümünde yayımlanır. Windows 10 (1809+) / Windows 11 64 bit desteklenir; kurulum .NET çalışma zamanını içerir. İlk giriş **owner / owner**; bu beta sürümünde sabittir.
 
 - **Ayarlar → MySQL bağlantısı:** sunucu ve kolon eşleştirme, bağlantı testi, önizleme ve tek yönlü aktarım. [Bağlantı kılavuzu](docs/MYSQL-CONNECTION.md).
 - **Ayarlar → Firma ve etiket:** firma adı/logo ve 60 × 40 mm, 203 DPI TTP-244CE şablonu.
 - Kurulum dosyası imzasızdır. Canlı müşteri MySQL bağlantısı ve fiziksel yazıcı çıktısı ayrıca doğrulanmalıdır.
-- 151 otomatik kontrol; kurulum/kaldırma ve 467 yayın dosyasının bütünlüğü doğrulandı.
+- 156 otomatik kontrol; kurulum/kaldırma ve yayın dosyalarının bütünlüğü doğrulanır.
 
 ![Dashboard](docs/images/dashboard-refresh.png)
 
@@ -24,7 +24,7 @@ Windows, .NET SDK (slnx destekli) ve Inno Setup 6.7+ gerekir:
 ./installer/Test-Setup.ps1
 ```
 
-Çıktı: `artifacts/installer/BarcodePro-2.1.0-beta.3-Setup-x64.exe`. SHA256 dosyası aynı dizindedir. Kaynak depoya envanter, bağlantı şifreleri, derleme çıktıları ve yerel yedekler alınmaz.
+Çıktı: `artifacts/installer/BarcodePro-2.1.0-beta.4-Setup-x64.exe`. SHA256 dosyası aynı dizindedir. Kaynak depoya envanter, bağlantı şifreleri, derleme çıktıları ve yerel yedekler alınmaz.
 
 Mevcut .NET 8 / Windows Forms stok uygulamasının üzerine eklenen barkod tasarım ve baskı çalışma alanı. Ücretli UI paketi kullanılmaz. Barkod üretimi için Apache-2.0 lisanslı ZXing.Net 0.16.11 kullanılır.
 

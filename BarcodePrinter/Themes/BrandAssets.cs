@@ -6,10 +6,11 @@ public static class BrandAssets
     public static Bitmap CreateMark(int size)
     {
         var image=new Bitmap(size,size);using var g=Graphics.FromImage(image);g.SmoothingMode=SmoothingMode.AntiAlias;g.ScaleTransform(size/64f,size/64f);
-        using var background=new SolidBrush(Color.FromArgb(35,102,197));using var path=new GraphicsPath();
+        using var background=new SolidBrush(Color.FromArgb(22,24,28));using var path=new GraphicsPath();
         path.AddArc(0,0,20,20,180,90);path.AddArc(44,0,20,20,270,90);path.AddArc(44,44,20,20,0,90);path.AddArc(0,44,20,20,90,90);path.CloseFigure();g.FillPath(background,path);
-        using var white=new SolidBrush(Color.White);foreach(var bar in new[]{(14,3),(20,5),(28,2),(33,4),(40,2),(45,5)})g.FillRectangle(white,bar.Item1,17,bar.Item2,29);
-        using var pen=new Pen(Color.FromArgb(117,222,232),3){StartCap=LineCap.Round,EndCap=LineCap.Round};g.DrawLines(pen,[new PointF(13,12),new PointF(8,12),new PointF(8,23)]);g.DrawLines(pen,[new PointF(51,52),new PointF(56,52),new PointF(56,41)]);
+        using var white=new SolidBrush(Color.White);foreach(var bar in new[]{(14,2),(19,4),(26,2),(31,5),(39,2),(44,6)})g.FillRectangle(white,bar.Item1,17,bar.Item2,29);
+        using var pen=new Pen(Color.FromArgb(211,166,62),3){StartCap=LineCap.Round,EndCap=LineCap.Round};g.DrawLines(pen,[new PointF(14,11),new PointF(8,11),new PointF(8,23)]);g.DrawLines(pen,[new PointF(50,53),new PointF(56,53),new PointF(56,41)]);
+        using var scan=new Pen(Color.FromArgb(211,166,62),1.5f);g.DrawLine(scan,11,49,53,49);
         return image;
     }
     public static byte[] CreateIcon()
