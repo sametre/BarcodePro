@@ -1,10 +1,10 @@
-# Barcode Pro 2.1 Beta 5
+# Barcode Pro 2.1 Beta 6
 
 Windows için stok yönetimi, MySQL ürün aktarımı ve TSC etiket baskısı uygulaması.
 
 ## Beta kurulumu
 
-Beta 5 iki ayrı kurulum sunar. Barcode Pro Server ortak envanteri ana bilgisayarda tutar; Barcode Pro Client ürün ve stok işlemlerini erişim anahtarlı yerel ağ API'si üzerinden Server'a gönderir. MySQL aktarımı Server bilgisayarındaki yönetim uygulamasından yapılır. Siyah kurumsal tema, TLS 1042 teşhisi, TSC Raw TSPL ve otomatik fiziksel port ataması korunur.
+Beta 6 Server kurulumunu otomatikleştirir. Yönetici yetkisiyle TCP 5088 için Private/Domain güvenlik duvarı kuralı oluşturulur, Server Windows başlangıcına eklenir ve masaüstüne Client bağlantı adreslerini içeren dosya yazılır. Server ekranı bilgisayar adı, IP adresleri, port ve erişim anahtarını gösterir; bilgiler tek düğmeyle kopyalanabilir. Merkezi envanter, MySQL TLS teşhisi ve TSC doğrudan baskı korunur.
 
 Setup.exe GitHub Releases bölümünde yayımlanır. Windows 10 (1809+) / Windows 11 64 bit desteklenir; kurulum .NET çalışma zamanını içerir. İlk giriş **owner / owner**; bu beta sürümünde sabittir.
 
@@ -24,7 +24,7 @@ Windows, .NET SDK (slnx destekli) ve Inno Setup 6.7+ gerekir:
 ./installer/Test-Setup.ps1
 ```
 
-Çıktılar: `artifacts/installer/BarcodePro-Server-2.1.0-beta.5-Setup-x64.exe` ve `artifacts/installer/BarcodePro-Client-2.1.0-beta.5-Setup-x64.exe`. SHA256 dosyaları aynı dizindedir.
+Çıktılar: `artifacts/installer/BarcodePro-Server-2.1.0-beta.6-Setup-x64.exe` ve `artifacts/installer/BarcodePro-Client-2.1.0-beta.6-Setup-x64.exe`. SHA256 dosyaları aynı dizindedir.
 
 Mevcut .NET 8 / Windows Forms stok uygulamasının üzerine eklenen barkod tasarım ve baskı çalışma alanı. Ücretli UI paketi kullanılmaz. Barkod üretimi için Apache-2.0 lisanslı ZXing.Net 0.16.11 kullanılır.
 

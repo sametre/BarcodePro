@@ -1,9 +1,10 @@
-BARCODE PRO 2.1 - BETA 5 SERVER / CLIENT
+BARCODE PRO 2.1 - BETA 6 SERVER / CLIENT
 
 SERVER VE CLIENT KURULUMU
 Ortak verinin duracağı ana bilgisayara Barcode Pro Server kurulur.
 Server ekranında gösterilen http://IP:5088 adresini not edin ve pencereyi açık tutun.
-Windows Güvenlik Duvarı sorarsa özel ağ erişimine izin verin.
+Server kurulumu yönetici izniyle TCP 5088 güvenlik duvarı kuralını oluşturur,
+Windows başlangıcını ayarlar ve masaüstüne bağlantı bilgileri dosyası ekler.
 Diğer bilgisayarlara Barcode Pro Client kurulur.
 Client ilk açılışta Server adresini ve erişim anahtarı owner değerini ister.
 Ürün ve stok değişiklikleri Server bilgisayarındaki ortak envantere kaydedilir.

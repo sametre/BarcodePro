@@ -192,3 +192,10 @@
 - Client modu ilk açılışta Server URL'sini test edip Windows kullanıcı profilinde saklar. Ürün ve stok değişiklikleri merkezi Server envanterinde gerçekleşir.
 - Yanlış erişim anahtarı, ürün ekleme ve merkezi stok hareketini kapsayan gerçek HTTP entegrasyon kontrolleri eklendi; toplam 160 kontrol geçti.
 - Server ve Client için ayrı Inno Setup paketleri üretildi; her iki paketin 602 dosyalı kurulum ve kaldırma denemesi başarılıdır.
+
+## 2.1.0-beta.6 otomatik Server kurulumu
+
+- Server kurulumu yönetici yetkisi ister ve yalnızca uygulama executable'ı için Private/Domain profillerinde TCP 5088 gelen bağlantı kuralı oluşturur.
+- Server kısayolu geçerli kullanıcının Startup klasörüne eklenir. Masaüstüne ve kurulum klasörüne bilgisayar adı, yerel IPv4 adresleri, port ve Client adreslerini içeren bilgi dosyası yazılır.
+- Kaldırıcı oluşturulan güvenlik duvarı kuralını, Startup kısayolunu ve masaüstü bilgi dosyasını temizler.
+- Server durum ekranı bağlantı bilgilerini seçilebilir metin olarak gösterir ve panoya kopyalama düğmesi sunar.

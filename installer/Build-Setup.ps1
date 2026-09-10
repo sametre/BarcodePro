@@ -14,7 +14,7 @@ try {
         & $Compiler $script
         if ($LASTEXITCODE -ne 0) { throw "Setup derlemesi başarısız: $script" }
     }
-    foreach($name in @('BarcodePro-Server-2.1.0-beta.5-Setup-x64.exe','BarcodePro-Client-2.1.0-beta.5-Setup-x64.exe')) {
+    foreach($name in @('BarcodePro-Server-2.1.0-beta.6-Setup-x64.exe','BarcodePro-Client-2.1.0-beta.6-Setup-x64.exe')) {
         $setup = Join-Path $repository ('artifacts/installer/' + $name)
         $hash = (Get-FileHash -LiteralPath $setup -Algorithm SHA256).Hash
         Set-Content -LiteralPath ($setup + '.sha256') -Value ($hash + '  ' + $name) -Encoding ascii
