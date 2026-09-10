@@ -4,12 +4,13 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
-    <Version>2.1.0-beta.4</Version><AssemblyVersion>2.1.0.0</AssemblyVersion><FileVersion>2.1.0.4</FileVersion><Product>Barcode Pro Beta</Product><ApplicationIcon>Assets\BarcodePro.ico</ApplicationIcon>
+    <Version>2.1.0-beta.5</Version><AssemblyVersion>2.1.0.0</AssemblyVersion><FileVersion>2.1.0.5</FileVersion><Product>Barcode Pro Beta</Product><ApplicationIcon>Assets\BarcodePro.ico</ApplicationIcon>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings><ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
   </PropertyGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="MySqlConnector" Version="2.6.2" />
     <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.12" />
     <PackageReference Include="ZXing.Net" Version="0.16.11" />

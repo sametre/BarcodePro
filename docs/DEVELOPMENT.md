@@ -185,3 +185,10 @@
 - MySQL 1042, sertifika/TLS, 1045, 1049 ve zaman aşımı hataları için ayrı kullanıcı mesajları eklendi. 1042 mesajı uzak MySQL host izni, `bind-address`, port ve güvenlik duvarını işaret eder.
 - Açık ve koyu temalarda siyah/grafit kurumsal palet, siyah işlem düğmeleri ve altın ayrıntılı yeni barkod uygulama simgesi kullanılır.
 - 156 otomatik kontrol başarıyla tamamlandı. Canlı müşteri MySQL hesabı bulunmadığı için gerçek sunucu bağlantısı müşteri ortamında doğrulanmalıdır.
+
+## 2.1.0-beta.5 Server / Client
+
+- Server modu `0.0.0.0:5088` üzerinde ortak envanter API'sini çalıştırır. Ürün kaydetme, silme, stok hareketi ve anlık envanter uçları erişim anahtarı ister.
+- Client modu ilk açılışta Server URL'sini test edip Windows kullanıcı profilinde saklar. Ürün ve stok değişiklikleri merkezi Server envanterinde gerçekleşir.
+- Yanlış erişim anahtarı, ürün ekleme ve merkezi stok hareketini kapsayan gerçek HTTP entegrasyon kontrolleri eklendi; toplam 160 kontrol geçti.
+- Server ve Client için ayrı Inno Setup paketleri üretildi; her iki paketin 602 dosyalı kurulum ve kaldırma denemesi başarılıdır.

@@ -1,9 +1,11 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using BarcodePrinter.Services.Network;
 namespace BarcodePrinter;
 public sealed class Inventory
 {
     private readonly string path;
+    private readonly RemoteInventoryClient? remote;
     public InventoryData Data { get; private set; }
     public static readonly string[] MovementKinds = ["Stok girişi", "Stok çıkışı", "Stok düzeltme", "İade", "Fire"];
     public Inventory(string path)
@@ -13,6 +15,12 @@ public sealed class Inventory
             ? JsonSerializer.Deserialize<InventoryData>(File.ReadAllText(path)) ?? throw new InvalidDataException("Veri dosyası boş.")
             : new InventoryData();
     }
+    public Inventory(RemoteInventoryClient remote)
+    {
+        this.remote=remote;path="";Data=remote.Snapshot();
+    }
+
+    private void RefreshRemote(){if(remote!=null)Data=remote.Snapshot();}
 
     public static bool ValidBarcode(string value) => Regex.IsMatch(value, @"^[A-Za-z0-9\-\.\$/+% ]{4,64}$") && !string.IsNullOrWhiteSpace(value);
 
@@ -35,6 +43,7 @@ public sealed class Inventory
 
     public void SaveProduct(Product input)
     {
+        if(remote!=null){remote.Save(input.Copy());RefreshRemote();return;}
         var p = input.Copy();
         p.Name = p.Name.Trim(); p.Barcode = p.Barcode.Trim(); p.Sku = p.Sku.Trim();
         if (p.Name.Length == 0 || p.Sku.Length == 0) throw new InvalidOperationException("Ürün adı ve SKU zorunludur.");
@@ -54,6 +63,7 @@ public sealed class Inventory
 
     public void Move(Guid id, string kind, decimal quantity, string note)
     {
+        if(remote!=null){remote.Move(id,kind,quantity,note);RefreshRemote();return;}
         if (!MovementKinds.Contains(kind)) throw new InvalidOperationException("Geçersiz işlem türü.");
         if (quantity < 0 || (quantity == 0 && kind != "Stok düzeltme")) throw new InvalidOperationException("Miktar sıfırdan büyük olmalıdır.");
         if ((kind == "Stok düzeltme" || kind == "Fire") && string.IsNullOrWhiteSpace(note)) throw new InvalidOperationException("Düzeltme ve fire için açıklama zorunludur.");
@@ -72,6 +82,7 @@ public sealed class Inventory
 
     public void Delete(Guid id)
     {
+        if(remote!=null){remote.Delete(id);RefreshRemote();return;}
         var product = Data.Products.Single(x => x.Id == id);
         if (product.Stock != 0) throw new InvalidOperationException("Silmek için önce stok sıfırlanmalıdır. Bunun yerine ürünü pasife alabilirsiniz.");
         Commit(d => d.Products.RemoveAll(x => x.Id == id));
@@ -79,6 +90,7 @@ public sealed class Inventory
 
     public (int Added,int Updated) ImportProducts(IEnumerable<Product> products,IReadOnlyCollection<string> mappedFields,bool updateStock)
     {
+        if(remote!=null)throw new InvalidOperationException("MySQL aktarımı Server uygulamasından yapılmalıdır.");
         var rows=products.Select(p=>p.Copy()).ToList();
         var allowed=new MySqlSourceSettings().Columns.Keys.ToHashSet();
         if(mappedFields.Any(f=>!allowed.Contains(f)))throw new InvalidOperationException("Geçersiz aktarım alanı.");
@@ -118,6 +130,7 @@ public sealed class Inventory
 
     public void SeedDemo()
     {
+        if(remote!=null){remote.Seed();RefreshRemote();return;}
         if (Data.Products.Count != 0 || Data.Movements.Count != 0) throw new InvalidOperationException("Örnek veriler yalnızca boş envantere eklenebilir.");
         Commit(d =>
         {

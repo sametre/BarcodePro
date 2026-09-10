@@ -1,8 +1,11 @@
-param([string]$Setup = "$PSScriptRoot\..\artifacts\installer\BarcodePro-2.1.0-beta.4-Setup-x64.exe")
+param(
+    [string]$Setup = "$PSScriptRoot\..\artifacts\installer\BarcodePro-Client-2.1.0-beta.5-Setup-x64.exe",
+    [string]$AppId = '58D77DCF-22F5-42D1-BBC7-203B6A8EEA61'
+)
 $ErrorActionPreference='Stop'
 $repository=(Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $testRoot=Join-Path $repository ('artifacts\SetupSmoke-'+[Guid]::NewGuid())
-$uninstallKey='HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{ED32C4BC-57DA-43EE-890A-2257A1B2C19D}_is1'
+$uninstallKey='HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\{'+$AppId+'}_is1'
 if(Test-Path -LiteralPath $uninstallKey){throw 'Mevcut beta kurulumu var; kurulum testi çalıştırılmadı.'}
 New-Item -ItemType Directory -Path $testRoot | Out-Null
 $installDir=Join-Path $testRoot 'app'

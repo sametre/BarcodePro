@@ -52,6 +52,7 @@ internal static class Program
         count += ConnectionChecks.Run(directory);
         count += BetaChecks.Run(directory);
         count += PrinterRoutingChecks.Run();
+        count += NetworkChecks.Run(directory);
         Console.WriteLine($"{count} checks passed.");
     }
 }
