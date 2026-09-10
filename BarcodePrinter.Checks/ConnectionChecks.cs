@@ -28,8 +28,8 @@ internal static class ConnectionChecks
         var id=inventory.Data.Products.Single().Id;product.Stock=3;product.Price=11;
         inventory.ImportProducts([product],fields,false);Check(inventory.Data.Products.Single().Stock==12.5m&&inventory.Data.Products.Single().Price==11&&inventory.Data.Products.Single().Id==id,"Repeat import preserves ID and local stock by default");
         inventory.ImportProducts([product],fields,true);Check(inventory.Data.Products.Single().Stock==3&&inventory.Data.Movements.Last().Delta==-9.5m,"Explicit server stock refresh audited");
-        var before=File.ReadAllText(inventoryPath);var bad=product.Copy();bad.Barcode="99998888";bad.Sku="SECOND";bad.Price=-1;
-        Reject(()=>inventory.ImportProducts([new Product{Name="Valid first",Barcode="77776666",Sku="FIRST"},bad],fields,false),"Invalid later row rejects entire import");Check(File.ReadAllText(inventoryPath)==before&&inventory.Data.Products.Count==1,"Rejected import leaves memory and disk untouched");
+        var beforeStock=inventory.Data.Products.Single().Stock;var beforeMovements=inventory.Data.Movements.Count;var bad=product.Copy();bad.Barcode="99998888";bad.Sku="SECOND";bad.Price=-1;
+        Reject(()=>inventory.ImportProducts([new Product{Name="Valid first",Barcode="77776666",Sku="FIRST"},bad],fields,false),"Invalid later row rejects entire import");var reopened=new Inventory(inventoryPath);Check(reopened.Data.Products.Count==1&&reopened.Data.Products.Single().Stock==beforeStock&&reopened.Data.Movements.Count==beforeMovements,"Rejected import leaves SQLite transaction unchanged");
         Reject(()=>inventory.ImportProducts([product,product],fields,false),"Duplicate source identities rejected");
         var other=new Product{Name="Second",Barcode="88889999",Sku="SECOND"};inventory.ImportProducts([other],fields,false);var conflict=product.Copy();conflict.Sku=other.Sku;
         Reject(()=>inventory.ImportProducts([conflict],fields,false),"Cross product barcode and SKU conflict rejected");

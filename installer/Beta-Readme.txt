@@ -1,4 +1,11 @@
-BARCODE PRO 2.1 - BETA 7 SERVER / CLIENT
+BARCODE PRO 2.1 - BETA 8 SERVER / CLIENT
+
+SQLITE 3 VE MYSQL ICE AKTARMA
+Urunler, stok hareketleri, silme ve duzenleme islemleri inventory.db SQLite 3
+veritabaninda transaction ile saklanir. Eski inventory.json ilk acilista otomatik
+aktarilir ve inventory.json.migrated.bak olarak korunur.
+Server Yonetimi > Ayarlar > MySQL ice aktar ekraninda tablo ve kolonlari esleyin;
+Baglantiyi test et > Urunleri getir > Envantere aktar sirasini izleyin.
 
 YONETICI VE TSC PORT IZNI
 Server ve Client uygulamalari Windows yonetici yetkisiyle acilir.

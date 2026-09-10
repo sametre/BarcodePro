@@ -1,19 +1,28 @@
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using BarcodePrinter.Services.Network;
+using Microsoft.Data.Sqlite;
 namespace BarcodePrinter;
 public sealed class Inventory
 {
     private readonly string path;
+    private readonly string? legacyJsonPath;
     private readonly RemoteInventoryClient? remote;
     public InventoryData Data { get; private set; }
+    public string DatabasePath => remote==null?path:"Barcode Pro Server / SQLite";
     public static readonly string[] MovementKinds = ["Stok girişi", "Stok çıkışı", "Stok düzeltme", "İade", "Fire"];
     public Inventory(string path)
     {
-        this.path = path;
-        Data = File.Exists(path)
-            ? JsonSerializer.Deserialize<InventoryData>(File.ReadAllText(path)) ?? throw new InvalidDataException("Veri dosyası boş.")
-            : new InventoryData();
+        legacyJsonPath=Path.GetExtension(path).Equals(".json",StringComparison.OrdinalIgnoreCase)?path:null;
+        this.path = legacyJsonPath==null?path:Path.ChangeExtension(path,".db");
+        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(this.path))!);
+        bool migrate=!File.Exists(this.path)&&legacyJsonPath!=null&&File.Exists(legacyJsonPath);
+        InitializeDatabase();Data=migrate?LoadLegacy(legacyJsonPath!):LoadDatabase();
+        if(migrate)
+        {
+            try{Persist(Data);File.Copy(legacyJsonPath!,legacyJsonPath!+".migrated.bak",true);}
+            catch{SqliteConnection.ClearAllPools();foreach(var suffix in new[]{"","-wal","-shm"})try{File.Delete(this.path+suffix);}catch{}throw;}
+        }
     }
     public Inventory(RemoteInventoryClient remote)
     {
@@ -26,20 +35,63 @@ public sealed class Inventory
 
     private void Commit(Action<InventoryData> action)
     {
-        // Mutate a copy; an unsuccessful disk write must never change live stock.
         var next = JsonSerializer.Deserialize<InventoryData>(JsonSerializer.Serialize(Data))!;
         action(next);
-        Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!);
-        var temporary = path + ".tmp";
-        using (var stream = new FileStream(temporary, FileMode.Create, FileAccess.Write, FileShare.None))
-        {
-            JsonSerializer.Serialize(stream, next, new JsonSerializerOptions { WriteIndented = true });
-            stream.Flush(true);
-        }
-        if (File.Exists(path)) File.Replace(temporary, path, path + ".bak");
-        else File.Move(temporary, path);
+        Persist(next);
         Data = next;
     }
+
+    private SqliteConnection Open()
+    {
+        var connection=new SqliteConnection(new SqliteConnectionStringBuilder{DataSource=path,Mode=SqliteOpenMode.ReadWriteCreate,Cache=SqliteCacheMode.Shared,Pooling=true}.ConnectionString);
+        connection.Open();using var pragma=connection.CreateCommand();pragma.CommandText="PRAGMA foreign_keys=ON; PRAGMA busy_timeout=10000;";pragma.ExecuteNonQuery();return connection;
+    }
+    private void InitializeDatabase()
+    {
+        using var connection=Open();using var command=connection.CreateCommand();command.CommandText="""
+            PRAGMA journal_mode=WAL;
+            CREATE TABLE IF NOT EXISTS Products(Id TEXT PRIMARY KEY,Name TEXT NOT NULL,Barcode TEXT NOT NULL COLLATE NOCASE,Sku TEXT NOT NULL COLLATE NOCASE,Category TEXT NOT NULL,Cost TEXT NOT NULL,Price TEXT NOT NULL,OldPrice TEXT NULL,Stock TEXT NOT NULL,Minimum TEXT NOT NULL,Maximum TEXT NOT NULL,Unit TEXT NOT NULL,Description TEXT NOT NULL,ImagePath TEXT NOT NULL,OnMenu INTEGER NOT NULL,Active INTEGER NOT NULL,CreatedAt TEXT NOT NULL,UpdatedAt TEXT NOT NULL);
+            CREATE UNIQUE INDEX IF NOT EXISTS UX_Products_Barcode ON Products(Barcode COLLATE NOCASE);
+            CREATE UNIQUE INDEX IF NOT EXISTS UX_Products_Sku ON Products(Sku COLLATE NOCASE);
+            CREATE TABLE IF NOT EXISTS Movements(Id TEXT PRIMARY KEY,ProductId TEXT NOT NULL,ProductName TEXT NOT NULL,Barcode TEXT NOT NULL,Kind TEXT NOT NULL,BeforeAmount TEXT NOT NULL,Delta TEXT NOT NULL,AfterAmount TEXT NOT NULL,Note TEXT NOT NULL,At TEXT NOT NULL);
+            CREATE INDEX IF NOT EXISTS IX_Movements_ProductId ON Movements(ProductId);
+            CREATE INDEX IF NOT EXISTS IX_Movements_At ON Movements(At DESC);
+            """;command.ExecuteNonQuery();
+    }
+    private static InventoryData LoadLegacy(string jsonPath)=>JsonSerializer.Deserialize<InventoryData>(File.ReadAllText(jsonPath))??throw new InvalidDataException("Eski envanter dosyası boş.");
+    private InventoryData LoadDatabase()
+    {
+        var data=new InventoryData();using var connection=Open();using(var command=connection.CreateCommand())
+        {
+            command.CommandText="SELECT Id,Name,Barcode,Sku,Category,Cost,Price,OldPrice,Stock,Minimum,Maximum,Unit,Description,ImagePath,OnMenu,Active,CreatedAt,UpdatedAt FROM Products ORDER BY Name";
+            using var r=command.ExecuteReader();while(r.Read())data.Products.Add(new Product{Id=Guid.Parse(r.GetString(0)),Name=r.GetString(1),Barcode=r.GetString(2),Sku=r.GetString(3),Category=r.GetString(4),Cost=Decimal(r,5),Price=Decimal(r,6),OldPrice=r.IsDBNull(7)?null:Decimal(r,7),Stock=Decimal(r,8),Minimum=Decimal(r,9),Maximum=Decimal(r,10),Unit=r.GetString(11),Description=r.GetString(12),ImagePath=r.GetString(13),OnMenu=r.GetInt64(14)!=0,Active=r.GetInt64(15)!=0,CreatedAt=DateTime.Parse(r.GetString(16),null,System.Globalization.DateTimeStyles.RoundtripKind),UpdatedAt=DateTime.Parse(r.GetString(17),null,System.Globalization.DateTimeStyles.RoundtripKind)});
+        }
+        using(var command=connection.CreateCommand())
+        {
+            command.CommandText="SELECT Id,ProductId,ProductName,Barcode,Kind,BeforeAmount,Delta,AfterAmount,Note,At FROM Movements ORDER BY At";
+            using var r=command.ExecuteReader();while(r.Read())data.Movements.Add(new Movement{Id=Guid.Parse(r.GetString(0)),ProductId=Guid.Parse(r.GetString(1)),ProductName=r.GetString(2),Barcode=r.GetString(3),Kind=r.GetString(4),Before=Decimal(r,5),Delta=Decimal(r,6),After=Decimal(r,7),Note=r.GetString(8),At=DateTime.Parse(r.GetString(9),null,System.Globalization.DateTimeStyles.RoundtripKind)});
+        }
+        return data;
+    }
+    private static decimal Decimal(SqliteDataReader reader,int index)=>decimal.Parse(reader.GetString(index),System.Globalization.CultureInfo.InvariantCulture);
+    private void Persist(InventoryData data)
+    {
+        using var connection=Open();using var transaction=connection.BeginTransaction();
+        using(var clear=connection.CreateCommand()){clear.Transaction=transaction;clear.CommandText="DELETE FROM Products; DELETE FROM Movements;";clear.ExecuteNonQuery();}
+        foreach(var p in data.Products)
+        {
+            using var c=connection.CreateCommand();c.Transaction=transaction;c.CommandText="INSERT INTO Products VALUES($Id,$Name,$Barcode,$Sku,$Category,$Cost,$Price,$OldPrice,$Stock,$Minimum,$Maximum,$Unit,$Description,$ImagePath,$OnMenu,$Active,$CreatedAt,$UpdatedAt)";
+            Add(c,"$Id",p.Id.ToString());Add(c,"$Name",p.Name);Add(c,"$Barcode",p.Barcode);Add(c,"$Sku",p.Sku);Add(c,"$Category",p.Category);Add(c,"$Cost",Number(p.Cost));Add(c,"$Price",Number(p.Price));Add(c,"$OldPrice",p.OldPrice.HasValue?Number(p.OldPrice.Value):DBNull.Value);Add(c,"$Stock",Number(p.Stock));Add(c,"$Minimum",Number(p.Minimum));Add(c,"$Maximum",Number(p.Maximum));Add(c,"$Unit",p.Unit);Add(c,"$Description",p.Description);Add(c,"$ImagePath",p.ImagePath);Add(c,"$OnMenu",p.OnMenu?1:0);Add(c,"$Active",p.Active?1:0);Add(c,"$CreatedAt",p.CreatedAt.ToString("O"));Add(c,"$UpdatedAt",p.UpdatedAt.ToString("O"));c.ExecuteNonQuery();
+        }
+        foreach(var m in data.Movements)
+        {
+            using var c=connection.CreateCommand();c.Transaction=transaction;c.CommandText="INSERT INTO Movements VALUES($Id,$ProductId,$ProductName,$Barcode,$Kind,$Before,$Delta,$After,$Note,$At)";
+            Add(c,"$Id",m.Id.ToString());Add(c,"$ProductId",m.ProductId.ToString());Add(c,"$ProductName",m.ProductName);Add(c,"$Barcode",m.Barcode);Add(c,"$Kind",m.Kind);Add(c,"$Before",Number(m.Before));Add(c,"$Delta",Number(m.Delta));Add(c,"$After",Number(m.After));Add(c,"$Note",m.Note);Add(c,"$At",m.At.ToString("O"));c.ExecuteNonQuery();
+        }
+        transaction.Commit();
+    }
+    private static string Number(decimal value)=>value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    private static void Add(SqliteCommand command,string name,object value)=>command.Parameters.AddWithValue(name,value);
 
     public void SaveProduct(Product input)
     {

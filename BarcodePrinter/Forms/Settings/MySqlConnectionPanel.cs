@@ -42,7 +42,7 @@ public sealed class MySqlConnectionPanel : UserControl
         save.Click+=(_,_)=>Run(async token=>{ReadSettings().Save(settingsPath);status.Text="Bağlantı ayarları kaydedildi.";await Task.CompletedTask;});
         test.Click+=(_,_)=>Run(async token=>{await new MySqlProductSource(ReadSettings()).TestAsync(token);status.Text="Bağlantı başarılı. Ürün tablosu ve seçilen kolonlar okunabiliyor.";});
         fetch.Click+=(_,_)=>Run(async token=>{rows=null;preview.DataSource=null;var current=ReadSettings();var result=await new MySqlProductSource(current).ReadAsync(token);token.ThrowIfCancellationRequested();rows=result;fields=MySqlProductSource.ValidateMapping(current).Keys.ToArray();preview.DataSource=result.Select(p=>new{Ürün=p.Name,Barkod=p.Barcode,SKU=p.Sku,Fiyat=p.Price,Stok=p.Stock}).ToList();tabs.SelectedTab=previewTab;status.Text=$"{result.Count:N0} ürün okundu · {current.Database}.{current.Table} · Henüz envantere aktarılmadı.";});
-        import.Click+=(_,_)=>Run(async token=>{token.ThrowIfCancellationRequested();var result=inventory.ImportProducts(rows??throw new InvalidOperationException("Önce ürünleri getirin."),fields,updateStock.Checked);rows=null;status.Text=$"Aktarım tamamlandı: {result.Added} yeni, {result.Updated} güncellenen ürün. Yerel yedek korundu.";await Task.CompletedTask;});
+        import.Click+=(_,_)=>Run(async token=>{token.ThrowIfCancellationRequested();var result=inventory.ImportProducts(rows??throw new InvalidOperationException("Önce ürünleri getirin."),fields,updateStock.Checked);rows=null;status.Text=$"SQLite aktarımı tamamlandı: {result.Added} yeni, {result.Updated} güncellenen ürün. Transaction başarıyla kaydedildi.";await Task.CompletedTask;});
         cancel.Click+=(_,_)=>operation?.Cancel();
         Disposed+=(_,_)=>operation?.Cancel();ThemeManager.Apply(this);
     }
@@ -56,7 +56,7 @@ public sealed class MySqlConnectionPanel : UserControl
         if(operation!=null)return;using var cancellation=new CancellationTokenSource(TimeSpan.FromMinutes(2));operation=cancellation;SetBusy(true);status.Text="İşlem sürüyor…";
         try{await action(cancellation.Token);}catch(OperationCanceledException){if(!IsDisposed)status.Text="İşlem iptal edildi veya zaman aşımına uğradı.";}
         catch(MySqlException ex){if(!IsDisposed){MySqlSourceSettings current;try{current=ReadSettings();}catch{current=new(){Host=host.Text,Port=(uint)port.Value};}status.Text=MySqlProductSource.FriendlyError(ex,current);}}
-        catch(Exception ex)when(ex is InvalidOperationException or IOException or UnauthorizedAccessException or CryptographicException or FormatException or ArgumentException){if(!IsDisposed)status.Text=ex is InvalidOperationException?ex.Message:"İşlem tamamlanamadı. Bağlantı ayarlarını ve dosya erişimini kontrol edin.";}
+        catch(Exception ex)when(ex is InvalidOperationException or IOException or UnauthorizedAccessException or CryptographicException or FormatException or ArgumentException or Microsoft.Data.Sqlite.SqliteException){if(!IsDisposed)status.Text=ex is InvalidOperationException?ex.Message:ex is Microsoft.Data.Sqlite.SqliteException?"SQLite kayıt işlemi tamamlanamadı. Veritabanı dosyası ve Server erişimini kontrol edin.":"İşlem tamamlanamadı. Bağlantı ayarlarını ve dosya erişimini kontrol edin.";}
         finally{operation=null;if(!IsDisposed)SetBusy(false);}
     }
     private void SetBusy(bool busy){editor.Enabled=!busy;mapping.Enabled=!busy;save.Enabled=test.Enabled=fetch.Enabled=updateStock.Enabled=!busy;import.Enabled=!busy&&rows is {Count:>0};cancel.Enabled=busy;}

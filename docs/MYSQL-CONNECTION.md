@@ -1,4 +1,4 @@
-# Doğrudan MySQL ürün bağlantısı
+# MySQL'den SQLite envanterine ürün aktarımı
 
 Ayarlar → MySQL bağlantısı ekranından Laravel uygulamasının kullandığı MySQL sunucusuna bağlanılır. Bu özellik tek yönlü, kullanıcı tarafından başlatılan ürün aktarımıdır. Yerel stok giriş/çıkışları MySQL'e gönderilmez; sürekli veya çift yönlü senkronizasyon yapılmaz.
 
@@ -19,11 +19,11 @@ Ayarlar → MySQL bağlantısı ekranından Laravel uygulamasının kullandığ�
 - Kaynakta olmayan yerel ürünler silinmez. Ürün görselleri ve uzak oluşturulma/güncellenme tarihleri bu aktarımda alınmaz.
 - Kategori gibi ilişkili alanlar için adları düz kolon olarak döndüren bir VIEW kullanılabilir. Serbest SQL çalıştırma yoktur; tablo ve kolon tanımlayıcıları doğrulanır.
 - Tek aktarım sınırı 50.000 üründür; sınır aşılırsa kısmi aktarım yapılmaz. Bağlantı 10 saniye, sorgu 30 saniye, ekran işlemi toplam 2 dakika zaman aşımına sahiptir; okuma iptal edilebilir.
-- Tüm ürünler doğrulandıktan sonra tek atomik yerel kayıt yapılır. Hata durumunda bellek/disk envanteri korunur; başarılı kayıtta önceki veri `.bak` dosyasında kalır.
+- Tüm ürünler doğrulandıktan sonra tek SQLite transaction içinde kaydedilir. Hata durumunda transaction geri alınır; ürünler ve hareketler değişmeden kalır.
 
 ## Ayarların saklanması
 
-Bağlantı bilgileri envanterin yanında `mysql-connection.json` dosyasındadır. Şifre Windows DPAPI CurrentUser ile şifrelenir; düz metin şifre ve tam bağlantı dizesi günlüğe yazılmaz. Dosya başka bilgisayara/Windows hesabına taşındığında şifre yeniden girilmelidir. Envanter JSON dışa aktarımı bağlantı şifresini içermez.
+Bağlantı bilgileri `inventory.db` yanında `mysql-connection.json` dosyasındadır. Şifre Windows DPAPI CurrentUser ile şifrelenir; düz metin şifre ve tam bağlantı dizesi günlüğe yazılmaz. Dosya başka bilgisayara/Windows hesabına taşındığında şifre yeniden girilmelidir. Envanter JSON dışa aktarımı bağlantı şifresini içermez.
 
 ## Doğrulama
 

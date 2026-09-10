@@ -1,5 +1,5 @@
 param(
-    [string]$Setup = "$PSScriptRoot\..\artifacts\installer\BarcodePro-Client-2.1.0-beta.7-Setup-x64.exe",
+    [string]$Setup = "$PSScriptRoot\..\artifacts\installer\BarcodePro-Client-2.1.0-beta.8-Setup-x64.exe",
     [string]$AppId = '58D77DCF-22F5-42D1-BBC7-203B6A8EEA61',
     [switch]$MachineInstall
 )
@@ -20,7 +20,7 @@ try {
     foreach($file in $files){$relative=[IO.Path]::GetRelativePath((Join-Path $repository 'artifacts\publish\win-x64'),$file.FullName);$installed=Join-Path $installDir $relative;if(!(Test-Path -LiteralPath $installed) -or (Get-FileHash -LiteralPath $installed).Hash -ne (Get-FileHash -LiteralPath $file.FullName).Hash){throw "Kurulan dosya uyuşmuyor: $relative"}}
     $runtime=Get-Content -LiteralPath (Join-Path $installDir 'BarcodePrinter.runtimeconfig.json') -Raw | ConvertFrom-Json
     if(!$runtime.runtimeOptions.includedFrameworks -or !(Test-Path -LiteralPath (Join-Path $installDir 'coreclr.dll'))){throw 'Self-contained çalışma zamanı eksik.'}
-    foreach($privateFile in @('inventory.json','mysql-connection.json','company.json','printers.json')){if(Test-Path -LiteralPath (Join-Path $installDir $privateFile)){throw "Kişisel veri pakete girmiş: $privateFile"}}
+    foreach($privateFile in @('inventory.db','inventory.json','mysql-connection.json','company.json','printers.json')){if(Test-Path -LiteralPath (Join-Path $installDir $privateFile)){throw "Kişisel veri pakete girmiş: $privateFile"}}
     if(!(Test-Path -LiteralPath $uninstallKey)){throw 'Kaldırma kaydı oluşturulmadı.'}
     Write-Output "PASS: Kurulum, kaldırma kaydı ve $($files.Count) dosya özeti doğrulandı."
 } finally {

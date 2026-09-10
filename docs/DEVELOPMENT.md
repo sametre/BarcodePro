@@ -205,3 +205,11 @@
 - Uygulamaya `requireAdministrator` Windows manifesti eklendi. Server ve Client süreçleri UAC onayından sonra yönetici belirteciyle çalışır.
 - TSC port keşfi, `SetPrinter` ile fiziksel port ataması ve RAW TSPL spooler gönderimi aynı yükseltilmiş süreçte yürütülür.
 - Client kurulumu da yönetici kurulumu olarak işaretlendi. Derleme çıktısında yönetici manifestinin gömülü olduğu ayrıca doğrulandı.
+
+## 2.1.0-beta.8 SQLite 3 ve Xfce görünümü
+
+- Ürünler ve stok hareketleri `inventory.db` içindeki SQLite tablolarına taşındı. Barkod ve SKU için büyük/küçük harf duyarsız benzersiz indeksler, hareket sorgu indeksleri, WAL ve 10 saniye busy timeout kullanılır.
+- Ekleme, düzenleme, silme, stok hareketi ve MySQL toplu aktarımı SQLite transaction ile kaydedilir. Geçersiz MySQL satırı tüm transaction'ı geri alır.
+- Eski `inventory.json`, ilk açılışta SQLite'a otomatik aktarılır ve `.migrated.bak` olarak korunur.
+- Client ayarlarında MySQL sekmesi gösterilmez; MySQL aktarımı ortak veriyi yöneten Server Yönetimi uygulamasından yapılır.
+- Açık ve koyu palet Xfce/Greybird benzeri gri yüzeyler ve mavi seçim rengiyle yenilendi; koyu küçük düğmeler ve çift pencere sınırı korunur.

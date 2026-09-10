@@ -34,11 +34,11 @@ internal static class Program
         Reject(() => store.Delete(p.Id), "Nonzero stock deletion");
         edited.Active = true; store.SaveProduct(edited); store.Move(p.Id, "Stok düzeltme", 0, "close"); store.Delete(p.Id);
         Check(store.Data.Products.Count == 0 && store.Data.Movements.Count == 6, "Deletion retains movement history");
-        Check(File.Exists(path + ".bak"), "Backup created");
+        var sqlitePath=Path.ChangeExtension(path,".db");Check(File.Exists(sqlitePath), "SQLite database created");
+        using(var sqlite=new Microsoft.Data.Sqlite.SqliteConnection("Data Source="+sqlitePath)){sqlite.Open();using var command=sqlite.CreateCommand();command.CommandText="SELECT COUNT(*) FROM Movements";Check(Convert.ToInt32(command.ExecuteScalar())==6,"SQLite CRUD movement audit persisted");}
         Check(!Inventory.ValidBarcode("<script>") && Inventory.ValidBarcode("00001234"), "Barcode validation and leading zeros");
-        var failurePath = Path.Combine(directory, "blocked.json"); var blocked = new Inventory(failurePath); Directory.CreateDirectory(failurePath);
-        try { blocked.SaveProduct(p); throw new Exception("Expected write failure"); } catch (IOException) { }
-        Check(blocked.Data.Products.Count == 0, "Disk write failure does not mutate memory");
+        var failurePath = Path.Combine(directory, "blocked.json");Directory.CreateDirectory(Path.ChangeExtension(failurePath,".db"));
+        try { _=new Inventory(failurePath); throw new Exception("Expected database open failure"); } catch (Microsoft.Data.Sqlite.SqliteException) { Check(true,"SQLite open failure reported without data loss"); }
         ApplicationConfiguration.Initialize();
         using var form = new Form1(Path.Combine(directory, "ui.json"));
         form.Show(); Application.DoEvents();

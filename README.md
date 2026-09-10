@@ -1,17 +1,17 @@
-# Barcode Pro 2.1 Beta 7
+# Barcode Pro 2.1 Beta 8
 
 Windows için stok yönetimi, MySQL ürün aktarımı ve TSC etiket baskısı uygulaması.
 
 ## Beta kurulumu
 
-Beta 7 uygulama executable'ına Windows `requireAdministrator` manifesti ekler. Server ve Client her açılışta yükseltilmiş çalışır; TSC yazıcı kuyruğundaki `FILE:` / `PORTPROMPT:` portunun fiziksel USB, WSD veya IP portuna atanması ve RAW TSPL baskısı aynı yönetici oturumunda gerçekleşir. Otomatik Server güvenlik duvarı, başlangıç ve IP bilgi yapılandırması korunur.
+Beta 8 ürünler, stok hareketleri ve bütün CRUD işlemlerini SQLite 3 veritabanında transaction ile saklar. MySQL tablo/VIEW kolonları önizlenip ortak SQLite envanterine aktarılır. Eski `inventory.json` ilk açılışta otomatik taşınır ve migration yedeği korunur. Arayüz Xfce/Greybird yaklaşımına yakın kompakt gri yüzeyler, mavi aktif alanlar, koyu küçük düğmeler ve çift çizgili pencere çerçevesi kullanır.
 
 Setup.exe GitHub Releases bölümünde yayımlanır. Windows 10 (1809+) / Windows 11 64 bit desteklenir; kurulum .NET çalışma zamanını içerir. İlk giriş **owner / owner**; bu beta sürümünde sabittir.
 
 - **Ayarlar → MySQL bağlantısı:** sunucu ve kolon eşleştirme, bağlantı testi, önizleme ve tek yönlü aktarım. [Bağlantı kılavuzu](docs/MYSQL-CONNECTION.md).
 - **Ayarlar → Firma ve etiket:** firma adı/logo ve 60 × 40 mm, 203 DPI TTP-244CE şablonu.
 - Kurulum dosyası imzasızdır. Canlı müşteri MySQL bağlantısı ve fiziksel yazıcı çıktısı ayrıca doğrulanmalıdır.
-- 160 otomatik kontrol; Server ve Client kurulum/kaldırma paketleri ile yayın dosyalarının bütünlüğü doğrulanır.
+- 161 otomatik kontrol; Server ve Client kurulum/kaldırma paketleri ile yayın dosyalarının bütünlüğü doğrulanır.
 
 ![Dashboard](docs/images/dashboard-refresh.png)
 
@@ -24,7 +24,7 @@ Windows, .NET SDK (slnx destekli) ve Inno Setup 6.7+ gerekir:
 ./installer/Test-Setup.ps1
 ```
 
-Çıktılar: `artifacts/installer/BarcodePro-Server-2.1.0-beta.7-Setup-x64.exe` ve `artifacts/installer/BarcodePro-Client-2.1.0-beta.7-Setup-x64.exe`. SHA256 dosyaları aynı dizindedir.
+Çıktılar: `artifacts/installer/BarcodePro-Server-2.1.0-beta.8-Setup-x64.exe` ve `artifacts/installer/BarcodePro-Client-2.1.0-beta.8-Setup-x64.exe`. SHA256 dosyaları aynı dizindedir.
 
 Mevcut .NET 8 / Windows Forms stok uygulamasının üzerine eklenen barkod tasarım ve baskı çalışma alanı. Ücretli UI paketi kullanılmaz. Barkod üretimi için Apache-2.0 lisanslı ZXing.Net 0.16.11 kullanılır.
 
@@ -93,14 +93,14 @@ Fiziksel TSC cihazında baskı bu geliştirme ortamında denenmedi. Sürümün i
 
 `%LOCALAPPDATA%\BarcodePro\` altında:
 
-- `inventory.json` ve `.bak`: mevcut stok verisi, atomik kayıt korunur. Yeni isteğe bağlı `OldPrice` ve hareket barkod kopyası alanları eski dosyalarda varsayılan değerlerle açılır; migration gerekmez.
+- `inventory.db`: ürünler ve stok hareketleri için WAL ve transaction kullanan SQLite 3 veritabanı. Eski `inventory.json` yalnızca ilk migration kaynağıdır ve `.migrated.bak` kopyası korunur.
 - `images/`: ürün görselleri.
 - `templates/`: GUID adlarıyla JSON şablonlar, `.draft.json` taslaklar ve `.bak` yedekler.
 - `printers.json`: yazıcı profilleri ve kalibrasyon.
 - `print-queue.json`: baskı geçmişi ve iş anındaki ürün/şablon kopyaları.
 - `logs/`: teknik hata ayrıntıları.
 
-Tam yedek için uygulama kapalıyken klasörün tamamını kopyalayın. Ayarlardaki stok JSON dışa aktarımı tek başına ürün görsellerini veya şablonları içermez. Aynı Windows oturumunda ikinci uygulama örneği engellenir. Ağ üzerinden çok kullanıcı, mobil arayüz ve kamera taraması bu masaüstü kapsamına dahil değildir.
+Tam yedek için uygulama kapalıyken klasörün tamamını kopyalayın. Ayarlardaki JSON dışa aktarımı tek başına ürün görsellerini veya şablonları içermez. Server üzerinden birden fazla Client ortak SQLite envanterini kullanabilir; mobil arayüz ve kamera taraması bu masaüstü kapsamına dahil değildir.
 
 ## Kaynak ve geliştirme kaydı
 

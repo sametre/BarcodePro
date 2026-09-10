@@ -45,7 +45,7 @@ public class AppWindow : Form
     }
     protected override void OnLocationChanged(EventArgs e){base.OnLocationChanged(e);if(!restoring&&WindowState==FormWindowState.Normal&&previousState==FormWindowState.Normal)normalBounds=Bounds;}
     protected override void OnLayout(LayoutEventArgs e){base.OnLayout(e);if(caption!=null)caption.SetBounds(1,1,ClientSize.Width-2,caption.Height);}
-    protected override void OnPaint(PaintEventArgs e){base.OnPaint(e);using var pen=new Pen(ThemeManager.Current.Accent);e.Graphics.DrawRectangle(pen,0,0,ClientSize.Width-1,ClientSize.Height-1);}
+    protected override void OnPaint(PaintEventArgs e){base.OnPaint(e);using var outer=new Pen(Color.FromArgb(54,58,62));using var inner=new Pen(ThemeManager.Current.Border);e.Graphics.DrawRectangle(outer,0,0,ClientSize.Width-1,ClientSize.Height-1);if(ClientSize.Width>3&&ClientSize.Height>3)e.Graphics.DrawRectangle(inner,1,1,ClientSize.Width-3,ClientSize.Height-3);}
     protected override void WndProc(ref Message m)
     {
         // Extend the client area through the old grey frame; keep native sizing styles.

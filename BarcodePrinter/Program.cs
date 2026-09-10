@@ -29,7 +29,7 @@ internal static class Program
             }
             Application.Run(new Form1());
         }
-        catch (Exception ex) { MessageBox.Show("Uygulama başlatılamadı. Mevcut veriler korunmuştur. Veri dosyasını ve .bak yedeğini kontrol edin.\n\n" + ex.Message, "Barcode Pro", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+        catch (Exception ex) { MessageBox.Show("Uygulama başlatılamadı. Mevcut veriler korunmuştur. SQLite veritabanını, eski JSON migration yedeğini ve Server bağlantısını kontrol edin.\n\n" + ex.Message, "Barcode Pro", MessageBoxButtons.OK, MessageBoxIcon.Error); }
     }
 }
 

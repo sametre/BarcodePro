@@ -30,7 +30,7 @@ internal static class PrintingChecks
         foreach(var preset in templates.List()){using var bitmap=new LabelPreviewRenderer().Render(preset,p,203,at);Check(bitmap.Width>0,"Preset renders "+preset.Name);}
         templates.SaveDraft(t);Check(templates.Drafts().Count==1&&templates.Draft(t.Id)?.Id==t.Id,"Unsaved draft discovery and recovery");
         string oldJson="{\"Products\":[{\"Name\":\"Legacy\",\"Barcode\":\"1234\",\"Sku\":\"OLD\",\"Stock\":3}],\"Movements\":[]}";
-        var legacyPath=Path.Combine(directory,"legacy.json");File.WriteAllText(legacyPath,oldJson);var legacy=new Inventory(legacyPath);Check(legacy.Data.Products.Single().OldPrice==null&&legacy.Data.Products.Single().Stock==3,"Legacy inventory without new fields loads");
+        var legacyPath=Path.Combine(directory,"legacy.json");File.WriteAllText(legacyPath,oldJson);var legacy=new Inventory(legacyPath);Check(legacy.Data.Products.Single().OldPrice==null&&legacy.Data.Products.Single().Stock==3&&File.Exists(legacyPath+".migrated.bak"),"Legacy JSON migrates to SQLite with backup");
         var history=new DesignerHistory();for(int i=0;i<35;i++){history.Push(t);t.Name="Edit "+i;}for(int i=0;i<35;i++)t=history.Undo(t);Check(t.Name=="Standart Ürün Barkodu","35 undo operations");t=history.Redo(t);Check(t.Name=="Edit 0","Redo");
         t=TemplateService.Standard();
         foreach(int dpi in new[]{203,300,600})
