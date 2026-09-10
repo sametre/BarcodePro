@@ -16,7 +16,7 @@ public sealed class BarcodePrintForm : AppDialog
     private readonly Label total=new(){AutoSize=true},error=new(){Dock=DockStyle.Bottom,Height=44};
     private readonly List<PrintItem> items=[];private readonly PrinterSettingsService printerService=new();
     private readonly Dictionary<string,PrinterInfo> discovered=new(StringComparer.OrdinalIgnoreCase);
-    private readonly AppTextBox portInfo=new(){ReadOnly=true};
+    private readonly AppComboBox portInfo=new(){Enabled=false};
     public BarcodePrintForm(IEnumerable<Product> products,IEnumerable<Product>? selected=null,LabelTemplate? template=null)
     {
         this.products=products.ToList();Text="Barkod Yazdır • Toplu etiket baskısı";Size=new Size(1320,800);MinimumSize=new Size(1060,650);
@@ -37,11 +37,12 @@ public sealed class BarcodePrintForm : AppDialog
         var available=new TemplateService().List();if(template!=null){available.RemoveAll(t=>t.Id==template.Id);available.Insert(0,template);}if(available.Count==0)available.Add(TemplateService.Standard());templates.Items.AddRange(available.Cast<object>().ToArray());templates.SelectedIndex=0;
         mode.Items.AddRange(["Windows Driver","Raw TSPL (TSC)"]);mode.SelectedIndex=0;dpi.Items.AddRange([203,300,600]);dpi.SelectedIndex=0;media.Items.AddRange(Enum.GetNames<MediaKind>());media.SelectedIndex=(int)((LabelTemplate)templates.SelectedItem!).Media;
         Field("Yazıcı",printers);Field("Bağlantı portu",portInfo);Field("Şablon",templates);Field("Baskı modu",mode);Field("DPI",dpi);Field("Medya",media);Field("Adet çarpanı",copies);Field("Önizleme sayfa",previewPage);previewPage.ValueChanged+=(_,_)=>RefreshPreview();error.Height=76;
-        right.Controls.Add(preview);right.Controls.Add(options);right.Controls.Add(error);
+        var bindPort=Form1.Button("Seçili portu TSC'ye bağla",()=>{try{if(portInfo.SelectedItem==null)throw new InvalidOperationException("Önce bir USB veya ağ portu seçin.");PrinterRouting.AssignPhysicalPort(printers.Text,portInfo.Text);if(discovered.TryGetValue(printers.Text,out var item))discovered[printers.Text]=item with{Port=portInfo.Text};portInfo.Enabled=false;error.Text=$"{portInfo.Text} bağlandı · Etiket doğrudan TSC yazıcısına gönderilecek.";}catch(Exception ex)when(ex is InvalidOperationException or System.ComponentModel.Win32Exception){error.Text=ex.Message;}});bindPort.Dock=DockStyle.Top;
+        right.Controls.Add(preview);right.Controls.Add(bindPort);right.Controls.Add(options);right.Controls.Add(error);
         var bottom=new AppToolbar{Dock=DockStyle.Bottom};bottom.Controls.Add(total);bottom.Controls.Add(Form1.Button("Önizlemeyi yenile",RefreshPreview,false));var print=Form1.Button("Etiketleri yazdır",()=>{});print.Click+=async(_,_)=>{if(!ValidateChildren())return;print.Enabled=false;try{var job=CreateJob();await PrintQueueService.Instance.EnqueueAsync(job);error.Text="İş işlendi. Baskı kuyruğundan sonucu kontrol edin.";}catch(Exception ex){JsonStore.Log(ex);error.Text=ex.Message;}finally{print.Enabled=true;}};bottom.Controls.Add(print);
         split.Controls.Add(leftSection,0,0);split.Controls.Add(middleSection,1,0);split.Controls.Add(rightSection,2,0);Controls.Add(split);Controls.Add(bottom);
         templates.SelectedIndexChanged+=(_,_)=>{media.SelectedIndex=(int)((LabelTemplate)templates.SelectedItem!).Media;RefreshPreview();};dpi.SelectedIndexChanged+=(_,_)=>RefreshPreview();copies.ValueChanged+=(_,_)=>{UpdateTotal();RefreshPreview();};
-        printers.SelectedIndexChanged+=(_,_)=>{try{var detail=discovered.GetValueOrDefault(printers.Text);var profile=PrinterRouting.Resolve(printerService.Get(printers.Text),detail?.Driver??"");portInfo.Text=detail?.Port??"Okunamadı";dpi.SelectedItem=profile.Dpi;mode.SelectedIndex=(int)profile.Mode;mode.Enabled=!(PrinterRouting.IsTsc(profile.PrinterName,detail?.Driver??"")||profile.Model==Ttp244CePrinter.Model);dpi.Enabled=profile.Model!=Ttp244CePrinter.Model;RefreshPreview();}catch(Exception ex){error.Text=ex.Message;}};
+        printers.SelectedIndexChanged+=async(_,_)=>{try{var detail=discovered.GetValueOrDefault(printers.Text);var profile=PrinterRouting.Resolve(printerService.Get(printers.Text),detail?.Driver??"");dpi.SelectedItem=profile.Dpi;mode.SelectedIndex=(int)profile.Mode;bool tsc=PrinterRouting.IsTsc(profile.PrinterName,detail?.Driver??"")||profile.Model==Ttp244CePrinter.Model;mode.Enabled=!tsc;dpi.Enabled=profile.Model!=Ttp244CePrinter.Model;await ConfigurePort(tsc,detail);RefreshPreview();}catch(Exception ex){error.Text=ex.Message;}};
         Shown+=async(_,_)=>{try{var found=await printerService.DiscoverAsync();if(IsDisposed)return;foreach(var printer in found)discovered[printer.Name]=printer;printers.Items.AddRange(found.Select(p=>p.Name).ToArray());if(printers.Items.Count>0)printers.SelectedIndex=Math.Max(0,printers.Items.IndexOf(printerService.Profiles().FirstOrDefault()?.PrinterName??""));else error.Text="Windows'a kurulu yazıcı bulunamadı. Önizleme kullanılabilir.";}catch(Exception ex){error.Text=ex.Message;}};
         Filter();if(selected!=null)foreach(var p in selected)Add(p);UpdateTotal();
     }
@@ -50,6 +51,22 @@ public sealed class BarcodePrintForm : AppDialog
     private void UpdateTotal()=>total.Text=$"Toplam: {items.Sum(i=>(long)i.Quantity)*(int)copies.Value:N0} etiket     ";
     private PrinterProfile Profile(){var p=printerService.Get(printers.Text);p.Dpi=Convert.ToInt32(dpi.SelectedItem);p.Mode=(PrintMode)mode.SelectedIndex;return PrinterRouting.Resolve(p,discovered.GetValueOrDefault(printers.Text)?.Driver??"");}
     private LabelTemplate ChosenTemplate(){var t=JsonStore.Clone((LabelTemplate)templates.SelectedItem!);t.Media=(MediaKind)media.SelectedIndex;return t;}
+    private async Task ConfigurePort(bool tsc,PrinterInfo? detail)
+    {
+        portInfo.Items.Clear();portInfo.Enabled=false;if(detail==null){portInfo.Items.Add("Okunamadı");portInfo.SelectedIndex=0;return;}
+        if(!tsc||!PrinterRouting.IsFilePort(detail.Port)){portInfo.Items.Add(detail.Port);portInfo.SelectedIndex=0;return;}
+        error.Text="TSC gerçek portu aranıyor…";
+        try
+        {
+            string assigned=await Task.Run(()=>PrinterRouting.EnsurePhysicalPort(detail.Name,detail.Port));
+            var updated=detail with{Port=assigned};discovered[detail.Name]=updated;portInfo.Items.Add(assigned);portInfo.SelectedIndex=0;error.Text=$"{assigned} otomatik bağlandı · Doğrudan TSPL baskıya hazır";
+        }
+        catch(InvalidOperationException ex)
+        {
+            var candidates=await Task.Run(()=>PrinterRouting.UnassignedCandidates(detail.Name));
+            portInfo.Items.AddRange(candidates.Cast<object>().ToArray());portInfo.Enabled=candidates.Count>1;if(candidates.Count>0)portInfo.SelectedIndex=0;else{portInfo.Items.Add("Port bulunamadı");portInfo.SelectedIndex=0;}error.Text=ex.Message;
+        }
+    }
     private PrintJob CreateJob()=>new(){Printer=Profile(),Template=ChosenTemplate(),Items=items.Select(i=>new PrintItem{Product=i.Product.Copy(),Quantity=checked(i.Quantity*(int)copies.Value)}).ToList()};
     private void RefreshPreview()
     {

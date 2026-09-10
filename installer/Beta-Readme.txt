@@ -1,4 +1,4 @@
-BARCODE PRO 2.1 - BETA 2
+BARCODE PRO 2.1 - BETA 3
 
 İLK GİRİŞ
 Kullanıcı kodu: owner
@@ -8,8 +8,9 @@ Bu beta sürümünde giriş bilgileri sabittir.
 TSC DOĞRUDAN BASKI DÜZELTMESİ
 TSC seçildiğinde doğrudan Raw TSPL otomatik seçilir.
 FILE: / PORTPROMPT: portu seçiliyse baskı başlamaz.
-Windows > Yazıcı özellikleri > Bağlantı Noktaları bölümünde
-yazıcının gerçek USB veya ağ portunu seçin. Uygulama portu değiştirmez.
+Uygulama boşta olan gerçek USB portunu otomatik bulur ve TSC kuyruğuna bağlar.
+Windows izni yetmezse yalnızca port ataması için yönetici onayı gösterilir.
+Birden fazla boş port bulunursa baskı ekranından port seçilip bağlanır.
 
 FİRMA VE YAZICI
 Ayarlar > Firma ve etiket bölümünde firma adını ve logoyu kaydedin.

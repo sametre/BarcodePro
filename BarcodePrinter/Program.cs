@@ -5,8 +5,9 @@ namespace BarcodePrinter;
 internal static class Program
 {
     [STAThread]
-    static void Main()
+    static void Main(string[] args)
     {
+        if(args.Length>0&&args[0]=="--set-printer-port"){Environment.ExitCode=Services.Printing.PrinterRouting.RunPortHelper(args);return;}
         using var instance = new Mutex(true, "Local\\BarcodePro.Inventory", out bool first);
         if (!first) { MessageBox.Show("Barcode Pro zaten çalışıyor."); return; }
         CultureInfo.DefaultThreadCurrentCulture = CultureInfo.GetCultureInfo("tr-TR");

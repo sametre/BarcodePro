@@ -171,3 +171,10 @@
 - Baskı ekranında bağlantı portu, TSC için kilitli doğrudan baskı seçimi ve yanlış port açıklaması vardır. Windows sistemindeki portlar otomatik değiştirilmez.
 - 151 kontrol başarılı. TSC seçim UI akışı, eski profiller, sürücüden algılama, fiziksel/yanlış portlar test edildi. Beta 2 kurulum/kaldırma ve 467 dosya bütünlüğü doğrulandı. Geliştirme bilgisayarında yalnızca sanal yazıcılar bulunduğundan fiziksel çıktı doğrulanmadı.
 - Kaynak: https://learn.microsoft.com/en-us/dotnet/api/system.drawing.printing.printersettings.printtofile
+
+## 2.1.0-beta.3 otomatik TSC port ataması
+
+- TSC kuyruğu `FILE:` veya `PORTPROMPT:` üzerindeyse kullanılmayan USB portları taranır. Tek aday doğrudan kuyruğa atanır; yazıcı yönetim izni yoksa yalnızca bu işlem için Windows yönetici onayı açılır.
+- Başka yazıcı kuyruklarının kullandığı portlar otomatik adaylardan çıkarılır. Birden fazla boş USB/WSD/IP portu varsa kullanıcı baskı ekranında seçim yapar; böylece yanlış cihaza otomatik baskı gönderilmez.
+- Port değişikliği Windows spooler `SetPrinter` API'siyle yapılır ve ayar yeniden okunarak doğrulanır. Baskı kuyruğu ve RAW gönderim aşaması portu tekrar kontrol eder.
+- 152 otomatik kontrol, self-contained yayın ve 467 dosyalı kurulum/kaldırma testi başarılıdır. Fiziksel TSC bu geliştirme bilgisayarında bulunmadığı için gerçek etiket çıktısı müşteri cihazında doğrulanmalıdır.

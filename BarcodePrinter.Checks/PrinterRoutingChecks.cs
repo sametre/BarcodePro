@@ -18,12 +18,13 @@ internal static class PrinterRoutingChecks
             try{PrinterRouting.ValidatePort("TSC",port);throw new Exception("Expected port rejection");}catch(InvalidOperationException){Check(true,"File or unknown destination blocked: "+port);}
         }
         foreach(string port in new[]{"USB001","IP_192.168.1.10","WSD-123","\\\\server\\TSC"}){PrinterRouting.ValidatePort("TSC",port);Check(true,"Physical queue port accepted: "+port);}
+        Check(PrinterRouting.AutomaticCandidates(["FILE:","COM1:","USB002","USB001","IP_10.0.0.4"]).SequenceEqual(["USB002","USB001"]),"Automatic routing prioritizes USB and excludes file ports");
         using var form=new BarcodePrintForm([]);form.Show();Application.DoEvents();
         object Field(string name)=>typeof(BarcodePrintForm).GetField(name,BindingFlags.NonPublic|BindingFlags.Instance)!.GetValue(form)!;
         var printers=(ComboBox)Field("printers");var mode=(ComboBox)Field("mode");var dpi=(ComboBox)Field("dpi");var devices=(Dictionary<string,PrinterInfo>)Field("discovered");
         devices["Test TSC"]=new("Test TSC","TSC TTP-244CE","USB001","Hazır",false,"","203",true);printers.Items.Add("Test TSC");printers.SelectedItem="Test TSC";
         Check(mode.SelectedIndex==(int)PrintMode.RawTspl&&!mode.Enabled&&Equals(dpi.SelectedItem,203),"Selecting TSC in print form automatically uses direct TSPL and 203 DPI");
-        Check(((TextBox)Field("portInfo")).Text=="USB001","Print screen shows actual selected printer port");form.Close();
+        Check(((ComboBox)Field("portInfo")).Text=="USB001","Print screen shows actual selected printer port");form.Close();
         return count;
     }
 }
