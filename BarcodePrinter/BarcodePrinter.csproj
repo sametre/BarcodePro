@@ -4,7 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
-    <Version>2.1.0-beta.6</Version><AssemblyVersion>2.1.0.0</AssemblyVersion><FileVersion>2.1.0.6</FileVersion><Product>Barcode Pro Beta</Product><ApplicationIcon>Assets\BarcodePro.ico</ApplicationIcon>
+    <Version>2.1.0-beta.7</Version><AssemblyVersion>2.1.0.0</AssemblyVersion><FileVersion>2.1.0.7</FileVersion><Product>Barcode Pro Beta</Product><ApplicationIcon>Assets\BarcodePro.ico</ApplicationIcon><ApplicationManifest>app.manifest</ApplicationManifest>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings><ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
   </PropertyGroup>

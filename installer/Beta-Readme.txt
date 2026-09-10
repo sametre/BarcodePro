@@ -1,4 +1,10 @@
-BARCODE PRO 2.1 - BETA 6 SERVER / CLIENT
+BARCODE PRO 2.1 - BETA 7 SERVER / CLIENT
+
+YONETICI VE TSC PORT IZNI
+Server ve Client uygulamalari Windows yonetici yetkisiyle acilir.
+Windows UAC penceresinde Evet secilmelidir.
+TSC yazici FILE: / PORTPROMPT: portunda kalirsa uygulama yonetici yetkisiyle
+fiziksel USB, WSD veya IP portunu yazici kuyruguna atar ve etiketi RAW TSPL basar.
 
 SERVER VE CLIENT KURULUMU
 Ortak verinin duracağı ana bilgisayara Barcode Pro Server kurulur.

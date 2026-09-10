@@ -1,5 +1,5 @@
 param(
-    [string]$Setup = "$PSScriptRoot\..\artifacts\installer\BarcodePro-Client-2.1.0-beta.6-Setup-x64.exe",
+    [string]$Setup = "$PSScriptRoot\..\artifacts\installer\BarcodePro-Client-2.1.0-beta.7-Setup-x64.exe",
     [string]$AppId = '58D77DCF-22F5-42D1-BBC7-203B6A8EEA61',
     [switch]$MachineInstall
 )

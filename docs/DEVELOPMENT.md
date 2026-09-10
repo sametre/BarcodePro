@@ -199,3 +199,9 @@
 - Server kısayolu geçerli kullanıcının Startup klasörüne eklenir. Masaüstüne ve kurulum klasörüne bilgisayar adı, yerel IPv4 adresleri, port ve Client adreslerini içeren bilgi dosyası yazılır.
 - Kaldırıcı oluşturulan güvenlik duvarı kuralını, Startup kısayolunu ve masaüstü bilgi dosyasını temizler.
 - Server durum ekranı bağlantı bilgilerini seçilebilir metin olarak gösterir ve panoya kopyalama düğmesi sunar.
+
+## 2.1.0-beta.7 TSC yönetici yetkisi
+
+- Uygulamaya `requireAdministrator` Windows manifesti eklendi. Server ve Client süreçleri UAC onayından sonra yönetici belirteciyle çalışır.
+- TSC port keşfi, `SetPrinter` ile fiziksel port ataması ve RAW TSPL spooler gönderimi aynı yükseltilmiş süreçte yürütülür.
+- Client kurulumu da yönetici kurulumu olarak işaretlendi. Derleme çıktısında yönetici manifestinin gömülü olduğu ayrıca doğrulandı.
