@@ -8,12 +8,12 @@ public sealed class LoginForm : AppWindow
     public static bool Authenticate(string username,string password)=>username=="owner"&&password=="owner";
     public LoginForm(CompanyProfile? company=null)
     {
-        company??=CompanyProfile.Load();Text="R3 M-Kobi · Kullanıcı girişi";ClientSize=new Size(480,500);FormBorderStyle=FormBorderStyle.FixedSingle;MaximizeBox=false;MinimizeBox=false;StartPosition=FormStartPosition.CenterScreen;
-        var layout=new TableLayoutPanel{Dock=DockStyle.Fill,ColumnCount=1,RowCount=8,Padding=new Padding(46,24,46,28),BackColor=ThemeManager.Current.Surface};
-        foreach(int height in new[]{86,36,28,38,28,38,52,24})layout.RowStyles.Add(new RowStyle(SizeType.Absolute,height));
+        company??=CompanyProfile.Load();Text="R3 M-Kobi · Kullanıcı girişi";ClientSize=new Size(360,380);FormBorderStyle=FormBorderStyle.FixedSingle;MaximizeBox=false;MinimizeBox=false;StartPosition=FormStartPosition.CenterScreen;
+        var layout=new TableLayoutPanel{Dock=DockStyle.Fill,ColumnCount=1,RowCount=8,Padding=new Padding(32,18,32,22),BackColor=ThemeManager.Current.Surface};
+        foreach(int height in new[]{58,30,22,30,22,30,48,24})layout.RowStyles.Add(new RowStyle(SizeType.Absolute,height));
         var brand=new PictureBox{Dock=DockStyle.Fill,SizeMode=PictureBoxSizeMode.Zoom};
-        if(company.LogoBase64.Length>0){using var stream=new MemoryStream(Convert.FromBase64String(company.LogoBase64));using var image=Image.FromStream(stream);brand.Image=new Bitmap(image);}else brand.Image=BrandAssets.CreateMark(64);
-        var title=new Label{Text=string.IsNullOrWhiteSpace(company.Name)?"R3 M-Kobi":company.Name,Font=new Font("Segoe UI",18,FontStyle.Bold),Dock=DockStyle.Fill,TextAlign=ContentAlignment.MiddleCenter,AutoEllipsis=true,ForeColor=ThemeManager.Current.Foreground};
+        brand.Image=BrandAssets.CreateMark(54);
+        var title=new Label{Text="R3 M-Kobi",Font=new Font("Segoe UI",16,FontStyle.Bold),Dock=DockStyle.Fill,TextAlign=ContentAlignment.MiddleCenter,AutoEllipsis=true,ForeColor=ThemeManager.Current.Foreground};
         var user=new AppTextBox{Dock=DockStyle.Fill,PlaceholderText="Kullanıcı kodu",AccessibleName="Kullanıcı kodu"};var password=new AppTextBox{Dock=DockStyle.Fill,UseSystemPasswordChar=true,AccessibleName="Şifre"};
         var subtitle=new Label{Text="Stok, ürün ve etiket yönetim paneli",Dock=DockStyle.Fill,TextAlign=ContentAlignment.MiddleCenter,ForeColor=ThemeManager.Current.Muted,Font=AppTypography.Body()};
         var bottom=new Panel{Dock=DockStyle.Fill};var error=new Label{Dock=DockStyle.Bottom,Height=22,ForeColor=Color.Firebrick,TextAlign=ContentAlignment.MiddleCenter,AutoEllipsis=true};

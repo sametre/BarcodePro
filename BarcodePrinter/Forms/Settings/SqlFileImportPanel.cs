@@ -30,7 +30,7 @@ public sealed class SqlFileImportPanel : UserControl
         var select = new AppButton { Text = "SQL seç", IconKind = AppIcon.Template };
         select.Click += (_, _) =>
         {
-            using var picker = new OpenFileDialog { Filter = "MySQL ürün dökümü|*.sql", Title = "Ürün SQL dosyasını seçin" };
+            using var picker = new OpenFileDialog { Filter = "SQL tablo / ürün dökümü|*.sql;*.dump;*.txt|SQL dosyaları|*.sql|Tüm dosyalar|*.*", Title = "Ürün SQL dosyasını seçin" };
             if (picker.ShowDialog(this) != DialogResult.OK) return;
             file.Text = picker.FileName; result = null; preview.DataSource = null; SetBusy(false);
             status.Text = "Dosya seçildi. Önizle düğmesi ile ürünleri ve görsel durumlarını kontrol edin.";
@@ -52,7 +52,7 @@ public sealed class SqlFileImportPanel : UserControl
         var help = new Label
         {
             Dock = DockStyle.Bottom, Height = 45, Padding = new Padding(8, 5, 8, 2),
-            Text = "Görseller SQL içinde dosya yolu olarak bulunabilir. Görsel klasörünü veya sitenizin temel adresini girin.\nBarkod / SKU eşleşmeleri güncellenir; yeni ürünler eklenir. Kaynak tablodaki ek alanlar ürün kaydında korunur."
+            Text = "products tablosu ve INSERT kayıtları okunur; .sql dosyanızı seçip Önizle düğmesine basın.\nGörsel klasörünü veya sitenizin temel adresini girin. Barkod / SKU eşleşmeleri güncellenir, yeni ürünler eklenir."
         };
         preview.AutoGenerateColumns = true;
         Controls.Add(preview); Controls.Add(summary); Controls.Add(toolbar); Controls.Add(form); Controls.Add(help); Controls.Add(status);

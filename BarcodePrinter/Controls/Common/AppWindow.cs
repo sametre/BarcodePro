@@ -19,11 +19,11 @@ public class AppWindow : Form
         caption=new Panel{Dock=DockStyle.Top,Height=30,Padding=new Padding(6,0,0,0),Tag="caption"};
         var logo=new PictureBox{Dock=DockStyle.Left,Width=25,Image=BrandAssets.CreateMark(22),SizeMode=PictureBoxSizeMode.CenterImage};
         title=new Label{Text=Text,Dock=DockStyle.Fill,TextAlign=ContentAlignment.MiddleLeft,Padding=new Padding(6,0,0,0),Font=new Font("Segoe UI",9,FontStyle.Bold)};
-        var buttons=new FlowLayoutPanel{Dock=DockStyle.Right,Width=108,FlowDirection=FlowDirection.LeftToRight,WrapContents=false,Margin=Padding.Empty,Padding=Padding.Empty};
-        Button CaptionButton(string text,Action action){var b=new Button{Text=text,Width=36,Height=30,FlatStyle=FlatStyle.Flat,Margin=Padding.Empty,TabStop=false,Font=new Font("Segoe UI",10),AccessibleName=text};b.FlatAppearance.BorderSize=0;b.Click+=(_,_)=>action();buttons.Controls.Add(b);return b;}
-        var minimize=CaptionButton("−",()=>WindowState=FormWindowState.Minimized);minimize.AccessibleName="Simge durumuna küçült";minimize.Enabled=MinimizeBox;
-        maximize=CaptionButton("□",()=>ToggleMaximize());maximize.AccessibleName="Büyüt / geri yükle";maximize.Enabled=MaximizeBox;
-        var close=CaptionButton("×",Close);close.AccessibleName="Kapat";close.FlatAppearance.MouseOverBackColor=Color.FromArgb(218,66,70);
+        var buttons=new FlowLayoutPanel{Dock=DockStyle.Right,Width=84,FlowDirection=FlowDirection.LeftToRight,WrapContents=false,Margin=Padding.Empty,Padding=Padding.Empty};
+        Button CaptionButton(AppIcon icon, string name, Action action){var b=new Button{Width=28,Height=30,FlatStyle=FlatStyle.Flat,Margin=Padding.Empty,TabStop=false,Text="",AccessibleName=name,Image=AppIcons.Create(icon,Color.FromArgb(82,89,97),15),ImageAlign=ContentAlignment.MiddleCenter,Tag="caption-button"};b.FlatAppearance.BorderSize=0;b.FlatAppearance.MouseOverBackColor=ThemeManager.Current.ButtonHover;b.FlatAppearance.MouseDownBackColor=ThemeManager.Current.ButtonActive;b.Click+=(_,_)=>action();buttons.Controls.Add(b);return b;}
+        var minimize=CaptionButton(AppIcon.Minimize,"Simge durumuna küçült",()=>WindowState=FormWindowState.Minimized);minimize.Enabled=MinimizeBox;
+        maximize=CaptionButton(AppIcon.Maximize,"Büyüt / geri yükle",()=>ToggleMaximize());maximize.Enabled=MaximizeBox;
+        var close=CaptionButton(AppIcon.Close,"Kapat",Close);close.FlatAppearance.MouseOverBackColor=Color.FromArgb(218,66,70);
         caption.Controls.Add(title);caption.Controls.Add(logo);caption.Controls.Add(buttons);Controls.Add(caption);caption.SendToBack();
         foreach(var surface in new Control[]{caption,title,logo}){surface.MouseDown+=Drag;surface.DoubleClick+=(_,_)=>ToggleMaximize();}
         ThemeManager.Apply(caption);
@@ -34,7 +34,7 @@ public class AppWindow : Form
     protected override void OnResize(EventArgs e)
     {
         var prior=previousState;previousState=WindowState;base.OnResize(e);
-        if(maximize!=null)maximize.Text=WindowState==FormWindowState.Maximized?"❐":"□";
+        if(maximize!=null){var old=maximize.Image;maximize.Image=AppIcons.Create(WindowState==FormWindowState.Maximized?AppIcon.Restore:AppIcon.Maximize,Color.FromArgb(82,89,97),15);old?.Dispose();}
         if(restoring)return;
         if(WindowState==FormWindowState.Normal)
         {

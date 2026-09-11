@@ -5,11 +5,9 @@ public static class BrandAssets
 {
     public static Bitmap CreateMark(int size)
     {
-        var image=new Bitmap(size,size);using var g=Graphics.FromImage(image);g.SmoothingMode=SmoothingMode.AntiAlias;g.Clear(Color.Transparent);g.ScaleTransform(size/64f,size/64f);
-        using var bg=new SolidBrush(Color.FromArgb(82,88,95));using var path=new GraphicsPath();
-        path.AddArc(2,2,18,18,180,90);path.AddArc(44,2,18,18,270,90);path.AddArc(44,44,18,18,0,90);path.AddArc(2,44,18,18,90,90);path.CloseFigure();g.FillPath(bg,path);
-        using var ring=new Pen(Color.FromArgb(164,169,175),2);g.DrawPath(ring,path);
-        using var textBrush=new SolidBrush(Color.FromArgb(240,242,244));using var font=new Font("Segoe UI",24,FontStyle.Bold,GraphicsUnit.Pixel);using var format=new StringFormat{Alignment=StringAlignment.Center,LineAlignment=StringAlignment.Center};g.DrawString("R3",font,textBrush,new RectangleF(4,10,56,38),format);
+        var image=new Bitmap(size,size);using var g=Graphics.FromImage(image);g.SmoothingMode=SmoothingMode.AntiAlias;g.TextRenderingHint=System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;g.Clear(Color.Transparent);g.ScaleTransform(size/64f,size/64f);
+        // The application mark is intentionally transparent: only the matte-gray R3 lettering is shown.
+        using var textBrush=new SolidBrush(Color.FromArgb(86,92,100));using var font=new Font("Segoe UI",27,FontStyle.Bold,GraphicsUnit.Pixel);using var format=new StringFormat{Alignment=StringAlignment.Center,LineAlignment=StringAlignment.Center};g.DrawString("R3",font,textBrush,new RectangleF(0,8,64,42),format);
         return image;
     }
     public static byte[] CreateIcon()

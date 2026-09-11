@@ -26,7 +26,8 @@ public class AppButton : Button
     public override Size GetPreferredSize(Size proposedSize)
     {
         var size=base.GetPreferredSize(proposedSize);
-        return new Size(size.Width,Math.Max(26,(int)(26*DeviceDpi/96f)));
+        var width=Math.Clamp(size.Width,88,172);
+        return new Size(width,Math.Max(26,(int)(26*DeviceDpi/96f)));
     }
     protected override void OnForeColorChanged(EventArgs e){base.OnForeColorChanged(e);RefreshIcon();}
     protected override void OnEnabledChanged(EventArgs e){base.OnEnabledChanged(e);ThemeManager.Apply(this);}

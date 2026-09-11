@@ -1,13 +1,13 @@
 using System.Drawing.Drawing2D;
 namespace BarcodePrinter.Controls.Common;
-public enum AppIcon { Home, Products, Add, Edit, Delete, Stock, Barcode, Print, Design, Template, Settings, Report, History, Search, Save, Copy, Undo, Redo, Image, Text, Grid, Theme, Bell, Refresh, Export, Close }
+public enum AppIcon { Home, Products, Add, Edit, Delete, Stock, Barcode, Print, Design, Template, Settings, Report, History, Search, Save, Copy, Undo, Redo, Image, Text, Grid, Theme, Bell, Refresh, Export, Close, Minimize, Maximize, Restore }
 public static class AppIcons
 {
     private static readonly string? WindowsIconFont=FindWindowsIconFont();
     private static string? FindWindowsIconFont()
     {
         using var fonts=new System.Drawing.Text.InstalledFontCollection();
-        foreach(var name in new[]{"Segoe Fluent Icons","Segoe MDL2 Assets"})if(fonts.Families.Any(f=>f.Name.Equals(name,StringComparison.OrdinalIgnoreCase)))return name;
+        foreach(var name in new[]{"Segoe MDL2 Assets","Segoe Fluent Icons"})if(fonts.Families.Any(f=>f.Name.Equals(name,StringComparison.OrdinalIgnoreCase)))return name;
         return null;
     }
     // Restrained semantic colors for commands without an explicit foreground.
@@ -77,7 +77,7 @@ public static class AppIcons
     {
         // Use palette color if no color specified, otherwise use provided color
         var finalColor = color ?? GetColorForIcon(icon);
-        string? glyph=icon switch{AppIcon.Home=>"\uE80F",AppIcon.Products=>"\uE8B7",AppIcon.Add=>"\uE710",AppIcon.Edit=>"\uE70F",AppIcon.Delete=>"\uE74D",AppIcon.Print=>"\uE749",AppIcon.Settings=>"\uE713",AppIcon.Search=>"\uE721",AppIcon.Save=>"\uE74E",AppIcon.Copy=>"\uE8C8",AppIcon.Undo=>"\uE7A7",AppIcon.Redo=>"\uE7A6",AppIcon.Image=>"\uEB9F",AppIcon.History=>"\uE81C",AppIcon.Theme=>"\uE708",AppIcon.Bell=>"\uE7F4",AppIcon.Refresh=>"\uE72C",AppIcon.Close=>"\uE711",AppIcon.Grid=>"\uE80A",AppIcon.Template=>"\uE8A5",AppIcon.Export=>"\uE898",_=>null};
+        string? glyph=icon switch{AppIcon.Home=>"\uE80F",AppIcon.Products=>"\uE8B7",AppIcon.Add=>"\uE710",AppIcon.Edit=>"\uE70F",AppIcon.Delete=>"\uE74D",AppIcon.Print=>"\uE749",AppIcon.Settings=>"\uE713",AppIcon.Search=>"\uE721",AppIcon.Save=>"\uE74E",AppIcon.Copy=>"\uE8C8",AppIcon.Undo=>"\uE7A7",AppIcon.Redo=>"\uE7A6",AppIcon.Image=>"\uEB9F",AppIcon.History=>"\uE81C",AppIcon.Theme=>"\uE708",AppIcon.Bell=>"\uE7F4",AppIcon.Refresh=>"\uE72C",AppIcon.Close=>"\uE711",AppIcon.Minimize=>"\uE921",AppIcon.Maximize=>"\uE922",AppIcon.Restore=>"\uE923",AppIcon.Grid=>"\uE80A",AppIcon.Template=>"\uE8A5",AppIcon.Export=>"\uE898",_=>null};
         if(WindowsIconFont!=null&&glyph!=null)
         {
             var bitmap=new Bitmap(size,size);using var graphics=Graphics.FromImage(bitmap);graphics.TextRenderingHint=System.Drawing.Text.TextRenderingHint.AntiAliasGridFit;
