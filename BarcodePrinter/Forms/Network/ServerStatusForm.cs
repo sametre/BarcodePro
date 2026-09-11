@@ -64,23 +64,44 @@ public sealed class ServerStatusForm : AppWindow
         try { using var service=new ServiceController(ServerConfiguration.ServiceName); _=service.Status; missingService=false; }
         catch(InvalidOperationException) { missingService=true; }
         if(!missingConfig && !missingService) return;
-        var script=Path.Combine(AppContext.BaseDirectory,"Configure-BarcodeProServer.ps1");
-        if(!File.Exists(script)) return;
         state.Text="Server kurulumu eksik. Yönetici izinli servis kurulumu başlatılıyor…";
         try
         {
-            var info=new ProcessStartInfo
-            {
-                FileName=Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System),"WindowsPowerShell\\v1.0\\powershell.exe"),
-                Arguments=$"-NoProfile -ExecutionPolicy Bypass -File \"{script}\" -InstallDir \"{AppContext.BaseDirectory}\" -DataDir \"{ServerConfiguration.DataDirectory}\" -ServiceName \"{ServerConfiguration.ServiceName}\" -Port 5088",
-                UseShellExecute=true, Verb="runas", WindowStyle=ProcessWindowStyle.Hidden, WorkingDirectory=AppContext.BaseDirectory
-            };
-            using var process=Process.Start(info) ?? throw new InvalidOperationException("Yönetici kurulumu başlatılamadı.");
-            await process.WaitForExitAsync();
-            if(process.ExitCode!=0) state.Text="Server kurulumu tamamlanamadı. Yönetici izni, Windows hizmetleri ve güvenlik duvarı ayarlarını kontrol edin.";
+            await InstallServiceDirectAsync();
         }
         catch(Win32Exception ex) when(ex.NativeErrorCode==1223)
         { state.Text="Server kurulumu için yönetici izni verilmedi. Setup.exe dosyasını sağ tıklayıp Yönetici olarak çalıştırın."; }
         catch(Exception ex) { state.Text="Server kurulumu başlatılamadı.\r\n\r\n"+ex.Message; }
+    }
+
+    private static async Task InstallServiceDirectAsync()
+    {
+        Directory.CreateDirectory(ServerConfiguration.DataDirectory);
+        var config=ServerConfiguration.Load(ServerConfiguration.DataDirectory,create:true);
+        config.Port=5088;config.Save(ServerConfiguration.DataDirectory);
+        var source=Path.Combine(Helpers.JsonStore.Root,"inventory.db");
+        if(!File.Exists(source)&&File.Exists(Path.ChangeExtension(source,".json")))source=Path.ChangeExtension(source,".json");
+        ServerDataMigration.Migrate(source,ServerConfiguration.DataDirectory);
+        var exe=Path.Combine(AppContext.BaseDirectory,"BarcodePrinter.exe");
+        if(!File.Exists(exe))throw new InvalidOperationException("BarcodePrinter.exe kurulum klasöründe bulunamadı.");
+        var binary=$"\"{exe}\" --service --data-dir \"{ServerConfiguration.DataDirectory}\" --service-name \"{ServerConfiguration.ServiceName}\"";
+        try { using var existing=new ServiceController(ServerConfiguration.ServiceName); _=existing.Status; }
+        catch(InvalidOperationException)
+        {
+            await RunScAsync("create",ServerConfiguration.ServiceName,"binPath=",binary,"start=","delayed-auto","obj=",$"NT SERVICE\\{ServerConfiguration.ServiceName}","DisplayName=","Barcode Pro Server");
+            await RunScAsync("sidtype",ServerConfiguration.ServiceName,"unrestricted");
+            await RunScAsync("failure",ServerConfiguration.ServiceName,"reset=","86400","actions=","restart/5000/restart/15000/restart/60000");
+        }
+        using var service=new ServiceController(ServerConfiguration.ServiceName);
+        if(service.Status==ServiceControllerStatus.Stopped) { service.Start(); await Task.Run(()=>service.WaitForStatus(ServiceControllerStatus.Running,TimeSpan.FromSeconds(30))); }
+    }
+
+    private static async Task RunScAsync(params string[] arguments)
+    {
+        var info=new ProcessStartInfo(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.System),"sc.exe")){UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,RedirectStandardError=true};
+        foreach(var argument in arguments)info.ArgumentList.Add(argument);
+        using var process=Process.Start(info)??throw new InvalidOperationException("Windows Service Control Manager başlatılamadı.");
+        var output=await process.StandardOutput.ReadToEndAsync();var error=await process.StandardError.ReadToEndAsync();await process.WaitForExitAsync();
+        if(process.ExitCode!=0)throw new InvalidOperationException($"Windows servisi oluşturulamadı ({process.ExitCode}): {error}{output}".Trim());
     }
 }
