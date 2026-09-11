@@ -15,11 +15,20 @@ public sealed class Product
     public string Unit { get; set; } = "Adet";
     public string Description { get; set; } = "";
     public string ImagePath { get; set; } = "";
+    public string SourceImage { get; set; } = "";
+    public byte[]? ImageData { get; set; }
+    public Dictionary<string, string?> SourceFields { get; set; } = new(StringComparer.OrdinalIgnoreCase);
     public bool OnMenu { get; set; } = true;
     public bool Active { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime UpdatedAt { get; set; } = DateTime.Now;
-    public Product Copy() => (Product)MemberwiseClone();
+    public Product Copy()
+    {
+        var copy = (Product)MemberwiseClone();
+        copy.SourceFields = new Dictionary<string, string?>(SourceFields, StringComparer.OrdinalIgnoreCase);
+        copy.ImageData = ImageData?.ToArray();
+        return copy;
+    }
 }
 public sealed class Movement
 {
@@ -36,6 +45,7 @@ public sealed class Movement
 }
 public sealed class InventoryData
 {
+    public string Revision { get; set; } = "";
     public List<Product> Products { get; set; } = [];
     public List<Movement> Movements { get; set; } = [];
 }

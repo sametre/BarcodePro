@@ -7,12 +7,46 @@ public partial class Form1
     private void Dashboard()
     {
         var d=inventory.Data;var today=d.Movements.Where(m=>m.At.Date==DateTime.Today).ToList();
+
+        // Eğer hiçbir veri yoksa (boş state) - merkezi saydam logo göster
+        if(d.Products.Count==0)
+        {
+            var emptyPanel=new Panel{Dock=DockStyle.Fill,Tag="canvas"};
+            var logoImage=BrandAssets.CreateMark(256);
+            emptyPanel.Paint+=(_,e)=>{
+                if(logoImage==null)return;
+                var x=(emptyPanel.Width-256)/2;
+                var y=(emptyPanel.Height-256)/2;
+
+                // Opacity effekti - mat gri üzerinde çiz
+                using var brush=new SolidBrush(Color.FromArgb(100,44,44,44));
+                e.Graphics.FillEllipse(brush,x-20,y-20,296,296);
+
+                // Logo'yu %50 opacity'de çiz
+                var cm=new System.Drawing.Imaging.ColorMatrix();
+                cm.Matrix33=0.5f;
+                using var attributes=new System.Drawing.Imaging.ImageAttributes();
+                attributes.SetColorMatrix(cm);
+                e.Graphics.DrawImage(logoImage,new Rectangle(x,y,256,256),
+                    0,0,256,256,GraphicsUnit.Pixel,attributes);
+
+                // Alt metin
+                using var font=AppTypography.Body();
+                using var brushText=new SolidBrush(Muted);
+                var text="Başlamak için ilk ürünü ekleyin";
+                var size=e.Graphics.MeasureString(text,font);
+                e.Graphics.DrawString(text,font,brushText,(emptyPanel.Width-size.Width)/2,y+280);
+            };
+            content.Controls.Add(emptyPanel);
+            return;
+        }
+
         var surface=new DashboardSurface();var layout=new TableLayoutPanel{ColumnCount=1,RowCount=4,Margin=Padding.Empty,Tag="canvas"};
-        layout.RowStyles.Add(new RowStyle(SizeType.Absolute,64));layout.RowStyles.Add(new RowStyle(SizeType.Absolute,180));layout.RowStyles.Add(new RowStyle(SizeType.Absolute,164));layout.RowStyles.Add(new RowStyle(SizeType.Percent,100));
+        layout.RowStyles.Add(new RowStyle(SizeType.Absolute,50));layout.RowStyles.Add(new RowStyle(SizeType.Absolute,150));layout.RowStyles.Add(new RowStyle(SizeType.Absolute,145));layout.RowStyles.Add(new RowStyle(SizeType.Percent,100));
         var header=new Panel{Dock=DockStyle.Fill,Tag="canvas",Margin=Padding.Empty};
         header.Controls.Add(new Label{Text="Genel bakış",Font=AppTypography.Heading(),AutoSize=true,Location=new Point(0,1),Tag="canvas"});
-        header.Controls.Add(new Label{Text=DateTime.Today.ToString("dd MMMM yyyy, dddd")+"  ·  Envanter ve günlük hareketler",Font=AppTypography.Small(),AutoSize=true,Location=new Point(2,32),Tag="canvas"});
-        var add=Button("Yeni ürün",()=>EditProduct(null));add.AutoSize=false;add.Size=new Size(116,30);header.Controls.Add(add);header.Resize+=(_,_)=>add.Location=new Point(header.Width-126,12);
+        header.Controls.Add(new Label{Text=DateTime.Today.ToString("dd MMMM yyyy, dddd")+"  ·  Envanter ve günlük hareketler",Font=AppTypography.Small(),AutoSize=true,Location=new Point(2,27),Tag="canvas"});
+        var add=Button("Yeni ürün",()=>EditProduct(null));add.AutoSize=false;add.Size=new Size(108,27);header.Controls.Add(add);header.Resize+=(_,_)=>add.Location=new Point(header.Width-116,8);
         var cards=new TableLayoutPanel{Dock=DockStyle.Fill,ColumnCount=4,RowCount=2,Margin=Padding.Empty,Tag="canvas"};for(int i=0;i<4;i++)cards.ColumnStyles.Add(new ColumnStyle(SizeType.Percent,25));for(int i=0;i<2;i++)cards.RowStyles.Add(new RowStyle(SizeType.Percent,50));
         (string Caption,string Value,AppIcon Icon,bool Warning)[] metrics=[
             ("Toplam ürün",d.Products.Count.ToString("N0"),AppIcon.Products,false),

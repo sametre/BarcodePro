@@ -15,3 +15,11 @@ mysql-connection.json
 company.json
 printers.json
 print-queue.json
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+*.sql
+network.json
+server.json

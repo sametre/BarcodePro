@@ -6,11 +6,20 @@ public static class BrandAssets
     public static Bitmap CreateMark(int size)
     {
         var image=new Bitmap(size,size);using var g=Graphics.FromImage(image);g.SmoothingMode=SmoothingMode.AntiAlias;g.ScaleTransform(size/64f,size/64f);
-        using var background=new SolidBrush(Color.FromArgb(22,24,28));using var path=new GraphicsPath();
-        path.AddArc(0,0,20,20,180,90);path.AddArc(44,0,20,20,270,90);path.AddArc(44,44,20,20,0,90);path.AddArc(0,44,20,20,90,90);path.CloseFigure();g.FillPath(background,path);
-        using var white=new SolidBrush(Color.White);foreach(var bar in new[]{(14,2),(19,4),(26,2),(31,5),(39,2),(44,6)})g.FillRectangle(white,bar.Item1,17,bar.Item2,29);
-        using var pen=new Pen(Color.FromArgb(211,166,62),3){StartCap=LineCap.Round,EndCap=LineCap.Round};g.DrawLines(pen,[new PointF(14,11),new PointF(8,11),new PointF(8,23)]);g.DrawLines(pen,[new PointF(50,53),new PointF(56,53),new PointF(56,41)]);
-        using var scan=new Pen(Color.FromArgb(211,166,62),1.5f);g.DrawLine(scan,11,49,53,49);
+        g.Clear(Color.Transparent);
+
+        // Connected ERP modules and a barcode form a compact, recognizable application mark.
+        using var gradBrush=new LinearGradientBrush(new Point(0,0),new Point(64,64),Color.FromArgb(29,57,88),Color.FromArgb(14,31,52));
+        using var bgPath=new GraphicsPath();
+        bgPath.AddArc(0,0,20,20,180,90);bgPath.AddArc(44,0,20,20,270,90);bgPath.AddArc(44,44,20,20,0,90);bgPath.AddArc(0,44,20,20,90,90);bgPath.CloseFigure();
+        g.FillPath(gradBrush,bgPath);
+
+        using var whiteBrush=new SolidBrush(Color.FromArgb(244,248,252));
+        using var blueBrush=new SolidBrush(Color.FromArgb(84,167,238));
+        g.FillRectangle(whiteBrush,12,13,17,14);g.FillRectangle(blueBrush,35,13,17,14);
+        using var link=new Pen(Color.FromArgb(172,194,216),2);g.DrawLine(link,20,27,20,32);g.DrawLine(link,43,27,43,32);g.DrawLine(link,20,31,43,31);
+        foreach(var bar in new[]{(13,2),(18,4),(25,2),(30,5),(38,2),(43,3),(49,2)})g.FillRectangle(whiteBrush,bar.Item1,37,bar.Item2,14);
+
         return image;
     }
     public static byte[] CreateIcon()
@@ -24,7 +33,7 @@ public static class BrandAssets
 }
 public static class AppTypography
 {
-    public static Font Body()=>new("Segoe UI",9.5f,FontStyle.Regular);
-    public static Font Small()=>new("Segoe UI",9,FontStyle.Regular);
-    public static Font Heading()=>new("Segoe UI",17,FontStyle.Bold);
+    public static Font Body()=>new("Segoe UI",9f,FontStyle.Regular);
+    public static Font Small()=>new("Segoe UI",8.5f,FontStyle.Regular);
+    public static Font Heading()=>new("Segoe UI",14,FontStyle.Bold);
 }

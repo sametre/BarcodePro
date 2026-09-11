@@ -1,5 +1,13 @@
 # MySQL'den SQLite envanterine ürün aktarımı
 
+## DBeaver SQL dosyası
+
+2.1.0 ayrıca `INSERT INTO products (...) VALUES (...)` dışa aktarım dosyalarını okuyabilir. SQL dosyası çalıştırılmaz; yalnızca sabit ürün değerleri ayrıştırılır. SQL yorumları, çoklu satırlar, Türkçe metin ve kaçış karakterleri desteklenir. MySQL sunucusuna bağlanmadan bu dosyadan ürün aktarabilirsiniz.
+
+İçe aktarım ekranında dosyayı seçin, varsa görsel klasörünü veya görsellerin temel web adresini belirtin ve önizleyin. Örneğin kaynak yol `products/a.webp` ise temel adres `https://firma.example/storage/` olabilir. Gerçek görseller dosyada bulunmaz; yollar korunur ve yüklenemeyenler özette bildirilir. JPEG/PNG/WebP görseller SQLite'a gömülerek Client bilgisayarlarda da gösterilir. Kaynaktaki kimlik, vergi, marka, kategori/birim kimlikleri, yer, tarih ve diğer kolonlar kaynak alanlarında saklanır. İlişkili tablonun adları dosyada yoksa kategori ve birim kimlikleri gösterilir.
+
+Barkodu boş ürünlere kararlı yerel barkod üretilir. Yinelenen kaynak SKU için özgün kod korunup ayırt edici ek kullanılır; tekrar eden barkod aktarımı durdurur. İkinci aktarım aynı ürünleri çoğaltmaz. Mevcut stoklar ancak stok yenileme kutusu seçilirse değiştirilir. MySQL bağlantısı ekranındaki kolon eşleştirme kuralları aşağıdadır.
+
 Ayarlar → MySQL bağlantısı ekranından Laravel uygulamasının kullandığı MySQL sunucusuna bağlanılır. Bu özellik tek yönlü, kullanıcı tarafından başlatılan ürün aktarımıdır. Yerel stok giriş/çıkışları MySQL'e gönderilmez; sürekli veya çift yönlü senkronizasyon yapılmaz.
 
 1. Sunucu, port (varsayılan 3306), veritabanı, kullanıcı ve şifreyi girin. Sunucunun masaüstü bilgisayardan erişilebilir olması ve kullanıcının ürün tablosunda SELECT yetkisi bulunması gerekir.

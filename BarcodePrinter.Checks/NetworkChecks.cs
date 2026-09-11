@@ -17,6 +17,12 @@ internal static class NetworkChecks
             var product=new Product{Name="Ağ ürünü",Barcode="8691234000001",Sku="NET-1",Stock=5};client.Save(product);
             Check(client.Snapshot().Products.Single().Stock==5,"Client saves product on server");
             client.Move(product.Id,"Stok çıkışı",2,"test");Check(client.Snapshot().Products.Single().Stock==3,"Client stock movement is centralized");
+            var snapshot=client.Snapshot();
+            Check(ReferenceEquals(snapshot,client.SnapshotIfChanged(snapshot)),"Unchanged remote refresh skips downloading inventory and images");
+            var admin=new Inventory(Path.Combine(directory,"server-inventory.json"));
+            var edited=admin.Data.Products.Single().Copy();edited.Name="Server yönetim değişikliği";edited.ImageData=[1,2,3];admin.SaveProduct(edited);
+            var updated=client.SnapshotIfChanged(snapshot);
+            Check(updated.Products.Single().Name==edited.Name && updated.Products.Single().ImageData!.SequenceEqual(edited.ImageData) && updated.Revision!=snapshot.Revision,"Clients detect independent Server admin writes and receive embedded images");
             try{using var denied=new RemoteInventoryClient(new NetworkSettings{ServerUrl=$"http://127.0.0.1:{port}",AccessKey="wrong"});denied.Snapshot();throw new Exception("Unauthorized client accepted");}catch(InvalidOperationException){Check(true,"LAN server rejects wrong access key");}
         }
         finally{server.DisposeAsync().AsTask().GetAwaiter().GetResult();}

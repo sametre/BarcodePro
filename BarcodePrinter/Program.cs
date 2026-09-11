@@ -10,6 +10,28 @@ internal static class Program
     static void Main(string[] args)
     {
         if(args.Length>0&&args[0]=="--set-printer-port"){Environment.ExitCode=Services.Printing.PrinterRouting.RunPortHelper(args);return;}
+        string? Argument(string name){var index=Array.FindIndex(args,a=>a.Equals(name,StringComparison.OrdinalIgnoreCase));return index>=0&&index+1<args.Length?args[index+1]:null;}
+        if(args.Contains("--service",StringComparer.OrdinalIgnoreCase))
+        {
+            try{LanInventoryServer.RunServiceAsync(Argument("--data-dir"),Argument("--service-name")??ServerConfiguration.ServiceName).GetAwaiter().GetResult();}
+            catch(Exception ex){WriteServiceError(Argument("--data-dir"),ex);Environment.ExitCode=1;}
+            return;
+        }
+        if(args.Contains("--initialize-server",StringComparer.OrdinalIgnoreCase))
+        {
+            try
+            {
+                var directory=Argument("--data-dir")??ServerConfiguration.DataDirectory;
+                var configuration=ServerConfiguration.Load(directory,create:true);
+                if(Argument("--port") is string port){if(!int.TryParse(port,out int number)||number is <1024 or >65535)throw new InvalidOperationException("Geçersiz port.");configuration.Port=number;configuration.Save(directory);}
+                var source=Argument("--source-data")??Path.Combine(Helpers.JsonStore.Root,"inventory.db");
+                if(!File.Exists(source)&&File.Exists(Path.ChangeExtension(source,".json")))source=Path.ChangeExtension(source,".json");
+                if(!File.Exists(source))source=Argument("--seed-data")??source;
+                Services.Network.ServerDataMigration.Migrate(source,directory);
+            }
+            catch(Exception ex){WriteServiceError(Argument("--data-dir"),ex);Environment.ExitCode=1;}
+            return;
+        }
         var mode=args.Contains("--server",StringComparer.OrdinalIgnoreCase)?"Server":args.Contains("--client",StringComparer.OrdinalIgnoreCase)?"Client":"Inventory";
         using var instance = new Mutex(true, "Local\\BarcodePro."+mode, out bool first);
         if (!first) { MessageBox.Show("Barcode Pro zaten çalışıyor."); return; }
@@ -27,9 +49,14 @@ internal static class Program
                 using var setup=new ClientConnectionForm();if(setup.ShowDialog()!=DialogResult.OK)return;
                 using var remote=new RemoteInventoryClient(setup.Settings!);Application.Run(new Form1(remote:remote));return;
             }
-            Application.Run(new Form1());
+            Application.Run(new Form1(inventoryPath:args.Contains("--server-admin",StringComparer.OrdinalIgnoreCase)?ServerConfiguration.InventoryPath:null));
         }
         catch (Exception ex) { MessageBox.Show("Uygulama başlatılamadı. Mevcut veriler korunmuştur. SQLite veritabanını, eski JSON migration yedeğini ve Server bağlantısını kontrol edin.\n\n" + ex.Message, "Barcode Pro", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+    }
+    private static void WriteServiceError(string? directory,Exception error)
+    {
+        try{var path=directory??ServerConfiguration.DataDirectory;Directory.CreateDirectory(path);File.AppendAllText(Path.Combine(path,"service-error.log"),DateTimeOffset.Now.ToString("O")+" "+error+Environment.NewLine);}
+        catch(IOException){}catch(UnauthorizedAccessException){}
     }
 }
 

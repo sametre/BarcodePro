@@ -1,53 +1,102 @@
+using BarcodePrinter.Controls.Common;
+using BarcodePrinter.Themes;
+
 namespace BarcodePrinter;
 
-internal sealed class ProductEditor : BarcodePrinter.Controls.Common.AppDialog
+internal sealed class ProductEditor : AppDialog
 {
     private readonly Dictionary<string, TextBox> texts = [];
     private readonly Dictionary<string, NumericUpDown> numbers = [];
     public ProductEditor(Product? existing, Inventory inventory)
     {
         var p = existing?.Copy() ?? new Product();
-        Text = existing == null ? "Yeni ürün" : "Ürün bilgileri"; Size = new Size(740, 790); MinimumSize = new Size(640, 650); StartPosition = FormStartPosition.CenterParent; BackColor = Form1.Canvas; Font = new Font("Segoe UI", 10); Padding = new Padding(24); MinimizeBox = false; MaximizeBox = false;
-        var scroll=new Panel{Dock=DockStyle.Fill,AutoScroll=true,Padding=new Padding(0,0,12,0)};
-        var fields=new BarcodePrinter.Controls.Common.AppFieldGrid(190);scroll.Controls.Add(fields);
-        void Row(string name,Control control)=>fields.AddField(name,control,control.Height>40?control.Height+12:40);        void TextField(string name, string value, bool multiline = false) { var t = new TextBox { Text = value, Multiline = multiline, Height = multiline ? 65 : 28 }; texts[name] = t; Row(name, t); }
-        void Number(string name, decimal value) { var n = new NumericUpDown { Maximum = 1000000000, DecimalPlaces = 3, Value = value, ThousandsSeparator = true }; numbers[name] = n; Row(name, n); }
-        TextField("Ürün adı *", p.Name); TextField("Barkod *", p.Barcode); TextField("SKU *", p.Sku); TextField("Kategori", p.Category);
-        Number("Alış fiyatı (₺)", p.Cost); Number("Satış fiyatı (₺)", p.Price); Number("Eski fiyat (₺, 0=yok)", p.OldPrice ?? 0); Number(existing == null ? "Başlangıç stoğu" : "Mevcut stok", p.Stock);
-        if (existing != null) numbers["Mevcut stok"].Enabled = false;
-        Number("Minimum stok", p.Minimum); Number("Maksimum stok", p.Maximum);
-        TextField("Birim", p.Unit); TextField("Açıklama", p.Description, true);
-        var imagePanel = new FlowLayoutPanel { Height = 88, FlowDirection = FlowDirection.LeftToRight };
-        var preview = new PictureBox { Width = 80, Height = 80, SizeMode = PictureBoxSizeMode.Zoom, BorderStyle = BorderStyle.FixedSingle, BackColor = Color.White };
-        void Preview() { preview.Image?.Dispose(); preview.Image = null; if (File.Exists(p.ImagePath)) { try { using var original = Image.FromFile(p.ImagePath); preview.Image = new Bitmap(original); } catch (ArgumentException) { } } }
-        var imagePath = new Label { Text = string.IsNullOrEmpty(p.ImagePath) ? "Görsel seçilmedi" : Path.GetFileName(p.ImagePath), AutoSize = true, MaximumSize = new Size(150, 60) };
-        imagePanel.ControlAdded += (_, e) => { if(e.Control is Button) e.Control.Margin = new Padding(8, 26, 12, 0); if(e.Control is Label) e.Control.Margin = new Padding(0, 30, 0, 0); };
-        imagePanel.Controls.Add(preview); imagePanel.Controls.Add(Form1.Button("Görsel seç", () => { using var picker = new OpenFileDialog { Filter = "Görsel|*.jpg;*.jpeg;*.png;*.bmp" }; if (picker.ShowDialog(this) == DialogResult.OK) { try { using var check = Image.FromFile(picker.FileName); p.ImagePath = picker.FileName; imagePath.Text = Path.GetFileName(p.ImagePath); Preview(); } catch (Exception ex) when (ex is ArgumentException or IOException or OutOfMemoryException) { MessageBox.Show(this, "Görsel okunamadı."); } } }, false)); imagePanel.Controls.Add(imagePath); Row("Ürün görseli", imagePanel); Preview();
-        var menu = new CheckBox { Text = "Menüde göster", Checked = p.OnMenu }; var active = new CheckBox { Text = "Ürün aktif", Checked = p.Active }; Row("Menü durumu", menu); Row("Ürün durumu", active);
-        if (existing != null) Row("Kayıt tarihleri", new Label { Text = $"Oluşturulma: {p.CreatedAt:dd.MM.yyyy HH:mm}\nGüncelleme: {p.UpdatedAt:dd.MM.yyyy HH:mm}", Height = 48 });
-        var buttons = new FlowLayoutPanel { Dock = DockStyle.Bottom, Height = 58, Padding = new Padding(0, 16, 0, 0), FlowDirection = FlowDirection.RightToLeft };
-        buttons.Controls.Add(Form1.Button("Ürünü kaydet", () =>
+        Text = existing == null ? "Yeni ürün" : "Ürün bilgileri · " + p.Name;
+        Size = new Size(780, 560); MinimumSize = new Size(660, 530); Padding = new Padding(10); MinimizeBox = false; MaximizeBox = false; Font = AppTypography.Body();
+        var tabs = new TabControl { Dock = DockStyle.Fill, Padding = new Point(12, 5) };
+        AppFieldGrid Section(string caption)
+        {
+            var tab = new TabPage(caption) { Padding = new Padding(12), AutoScroll = true };
+            var fields = new AppFieldGrid(160); tab.Controls.Add(fields); tabs.TabPages.Add(tab); return fields;
+        }
+        void TextField(AppFieldGrid fields, string name, string value, bool multiline = false)
+        {
+            var text = new AppTextBox { Text = value, Multiline = multiline, Height = multiline ? 82 : 25 };
+            texts[name] = text; fields.AddField(name, text, multiline ? 90 : 34);
+        }
+        void Number(AppFieldGrid fields, string name, decimal value)
+        {
+            var number = new AppNumericInput { Maximum = 1000000000, DecimalPlaces = 3, Value = Math.Clamp(value, 0, 1000000000), ThousandsSeparator = true };
+            numbers[name] = number; fields.AddField(name, number);
+        }
+        var main = Section("Ürün bilgileri");
+        TextField(main, "Ürün adı *", p.Name); TextField(main, "Barkod *", p.Barcode); TextField(main, "SKU *", p.Sku);
+        TextField(main, "Kategori", p.Category); TextField(main, "Birim", p.Unit);
+        var menu = new AppToggle { Text = "Menüde göster", Checked = p.OnMenu };
+        var active = new AppToggle { Text = "Ürün aktif", Checked = p.Active };
+        main.AddField("Menü durumu", menu); main.AddField("Ürün durumu", active);
+        var prices = Section("Fiyat ve stok");
+        Number(prices, "Alış fiyatı (₺)", p.Cost); Number(prices, "Satış fiyatı (₺)", p.Price); Number(prices, "Eski fiyat (₺, 0=yok)", p.OldPrice ?? 0);
+        string stockCaption = existing == null ? "Başlangıç stoğu" : "Mevcut stok";
+        Number(prices, stockCaption, p.Stock); if (existing != null) numbers[stockCaption].Enabled = false;
+        Number(prices, "Minimum stok", p.Minimum); Number(prices, "Maksimum stok", p.Maximum);
+        if (existing != null) prices.AddField("Stok işlemi", new Label { Text = "Stok değişikliklerini Stok menüsünden yapın.", TextAlign = ContentAlignment.MiddleLeft }, 34);
+        var details = Section("Görsel ve açıklama");
+        TextField(details, "Açıklama", p.Description, true);
+        var preview = new PictureBox { Size = new Size(132, 132), SizeMode = PictureBoxSizeMode.Zoom, BorderStyle = BorderStyle.FixedSingle, BackColor = Color.White };
+        var imageState = new Label { AutoSize = false, Height = 48, Width = 260, AutoEllipsis = true };
+        void Preview()
+        {
+            preview.Image?.Dispose(); preview.Image = null;
+            try
+            {
+                if (p.ImageData is { Length: > 0 }) { using var stream = new MemoryStream(p.ImageData); using var original = Image.FromStream(stream); preview.Image = new Bitmap(original); }
+                else if (File.Exists(p.ImagePath)) { using var original = Image.FromFile(p.ImagePath); preview.Image = new Bitmap(original); }
+            }
+            catch (Exception ex) when (ex is ArgumentException or IOException or OutOfMemoryException) { }
+            imageState.Text = preview.Image != null ? "Görsel ürünle birlikte Server'da saklanır." : string.IsNullOrWhiteSpace(p.SourceImage) ? "Ürün görseli seçilmedi." : "Kaynak görsel bekleniyor: " + p.SourceImage;
+        }
+        var imageActions = new FlowLayoutPanel { FlowDirection = FlowDirection.TopDown, WrapContents = false, Width = 275, Height = 132, Margin = new Padding(10, 0, 0, 0) };
+        var choose = Form1.Button("Görsel seç", () =>
+        {
+            using var picker = new OpenFileDialog { Filter = "Görsel|*.jpg;*.jpeg;*.png;*.bmp" };
+            if (picker.ShowDialog(this) != DialogResult.OK) return;
+            try
+            {
+                using var original = Image.FromFile(picker.FileName);
+                var ratio = Math.Min(1d, 1000d / Math.Max(original.Width, original.Height));
+                using var bitmap = new Bitmap(Math.Max(1, (int)(original.Width * ratio)), Math.Max(1, (int)(original.Height * ratio)));
+                using (var graphics = Graphics.FromImage(bitmap)) { graphics.Clear(Color.White); graphics.DrawImage(original, 0, 0, bitmap.Width, bitmap.Height); }
+                using var stream = new MemoryStream(); bitmap.Save(stream, System.Drawing.Imaging.ImageFormat.Jpeg);
+                p.ImageData = stream.ToArray(); p.SourceImage = Path.GetFileName(picker.FileName); p.ImagePath = ""; Preview();
+            }
+            catch (Exception ex) when (ex is ArgumentException or IOException or OutOfMemoryException) { MessageBox.Show(this, "Görsel okunamadı."); }
+        }, false);
+        var remove = Form1.Button("Görseli kaldır", () => { p.ImageData = null; p.ImagePath = ""; p.SourceImage = ""; Preview(); }, false);
+        imageActions.Controls.AddRange([choose, remove, imageState]);
+        var imageRow = new FlowLayoutPanel { Height = 140, WrapContents = false }; imageRow.Controls.AddRange([preview, imageActions]); details.AddField("Ürün görseli", imageRow, 145); Preview();
+        if (p.SourceFields.Count > 0)
+        {
+            var source = new TabPage("Kaynak tablo alanları") { Padding = new Padding(8) };
+            var grid = new AppDataGrid { MultiSelect = false };
+            grid.DataSource = p.SourceFields.Select(pair => new { Alan = pair.Key, KaynakDeğer = pair.Value }).ToList();
+            source.Controls.Add(grid); source.Controls.Add(new Label { Dock = DockStyle.Top, Height = 32, Text = "İçe aktarılan orijinal tablo alanları ürün kaydında korunur.", TextAlign = ContentAlignment.MiddleLeft }); tabs.TabPages.Add(source);
+        }
+        var actions = new AppToolbar { Dock = DockStyle.Bottom, FlowDirection = FlowDirection.RightToLeft, Padding = new Padding(0, 6, 0, 0) };
+        actions.Controls.Add(Form1.Button("Ürünü kaydet", () =>
         {
             try
             {
                 p.Name = texts["Ürün adı *"].Text; p.Barcode = texts["Barkod *"].Text; p.Sku = texts["SKU *"].Text; p.Category = texts["Kategori"].Text.Trim(); p.Unit = texts["Birim"].Text.Trim(); p.Description = texts["Açıklama"].Text;
-                p.Cost = numbers["Alış fiyatı (₺)"].Value; p.Price = numbers["Satış fiyatı (₺)"].Value; p.OldPrice = numbers["Eski fiyat (₺, 0=yok)"].Value == 0 ? null : numbers["Eski fiyat (₺, 0=yok)"].Value; p.Stock = numbers[existing == null ? "Başlangıç stoğu" : "Mevcut stok"].Value; p.Minimum = numbers["Minimum stok"].Value; p.Maximum = numbers["Maksimum stok"].Value; p.OnMenu = menu.Checked; p.Active = active.Checked;
+                p.Cost = numbers["Alış fiyatı (₺)"].Value; p.Price = numbers["Satış fiyatı (₺)"].Value; p.OldPrice = numbers["Eski fiyat (₺, 0=yok)"].Value == 0 ? null : numbers["Eski fiyat (₺, 0=yok)"].Value;
+                p.Stock = numbers[stockCaption].Value; p.Minimum = numbers["Minimum stok"].Value; p.Maximum = numbers["Maksimum stok"].Value; p.OnMenu = menu.Checked; p.Active = active.Checked;
                 if (p.Unit.Length == 0 || p.Category.Length == 0) throw new InvalidOperationException("Birim ve kategori boş bırakılamaz.");
-                if (File.Exists(p.ImagePath))
-                {
-                    var folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "BarcodePro", "images"); Directory.CreateDirectory(folder);
-                    var target = Path.Combine(folder, p.Id + Path.GetExtension(p.ImagePath));
-                    if (!Path.GetFullPath(p.ImagePath).Equals(target, StringComparison.OrdinalIgnoreCase)) File.Copy(p.ImagePath, target, true);
-                    p.ImagePath = target;
-                }
                 inventory.SaveProduct(p); DialogResult = DialogResult.OK;
             }
-            catch (Exception ex) when (ex is InvalidOperationException or IOException or UnauthorizedAccessException) { MessageBox.Show(this, ex.Message, "Ürün kaydedilemedi", MessageBoxButtons.OK, MessageBoxIcon.Warning); }
+            catch (Exception ex) when (ex is InvalidOperationException or IOException or UnauthorizedAccessException or Microsoft.Data.Sqlite.SqliteException)
+            { MessageBox.Show(this, ex.Message, "Ürün kaydedilemedi", MessageBoxButtons.OK, MessageBoxIcon.Warning); }
         }));
-        buttons.Controls.Add(Form1.Button("Vazgeç", () => DialogResult = DialogResult.Cancel, false));
-        Controls.Add(scroll); Controls.Add(buttons); FormClosed += (_, _) => preview.Image?.Dispose();
+        actions.Controls.Add(Form1.Button("Vazgeç", () => DialogResult = DialogResult.Cancel, false));
+        var dates = new Label { Dock = DockStyle.Bottom, Height = 25, Font = AppTypography.Small(), TextAlign = ContentAlignment.MiddleLeft, Text = existing == null ? "* Zorunlu alanlar" : $"Oluşturulma: {p.CreatedAt:dd.MM.yyyy HH:mm}   ·   Güncelleme: {p.UpdatedAt:dd.MM.yyyy HH:mm}" };
+        Controls.Add(tabs); Controls.Add(dates); Controls.Add(actions); FormClosed += (_, _) => preview.Image?.Dispose();
     }
 }
-
-
-

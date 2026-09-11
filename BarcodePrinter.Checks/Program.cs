@@ -5,9 +5,13 @@ internal static class Program
     [STAThread]
     static void Main(string[] args)
     {
+        if(args.Length>=3 && args[0]=="--customer-seed") { CustomerSeedPreparation.Run(args[1],args[2],args.Length>3?args[3]:null,args.Length>4?args[4]:null); return; }
+        if(args.Length>=3 && args[0]=="--customer-import") { CustomerSeedPreparation.ImportExisting(args[1],args[2],args.Length>3?args[3]:null,args.Length>4?args[4]:null); return; }
         if(args.Length == 2 && args[0] == "--brand-assets") { Directory.CreateDirectory(args[1]); File.WriteAllBytes(Path.Combine(args[1], "BarcodePro.ico"), BarcodePrinter.Themes.BrandAssets.CreateIcon()); using var mark = BarcodePrinter.Themes.BrandAssets.CreateMark(512); mark.Save(Path.Combine(args[1], "BarcodePro.png"), System.Drawing.Imaging.ImageFormat.Png); return; }
         var directory = Path.Combine(Path.GetTempPath(), "BarcodePro-checks-" + Guid.NewGuid());
         Directory.CreateDirectory(directory);
+        if(args.Contains("--storage-checks")) { Console.WriteLine($"{SqlImportChecks.Run(directory) + SqliteInventoryChecks.Run(directory)} storage checks passed."); return; }
+        if(args.Contains("--network-checks")) { Console.WriteLine($"{NetworkChecks.Run(directory)} network checks passed."); return; }
         var path = Path.Combine(directory, "inventory.json");
         var store = new Inventory(path);
         var p = new Product { Name = "Test", Barcode = "8691234567890", Sku = "TEST-1", Stock = 10 };
@@ -53,6 +57,8 @@ internal static class Program
         count += BetaChecks.Run(directory);
         count += PrinterRoutingChecks.Run();
         count += NetworkChecks.Run(directory);
+        count += SqlImportChecks.Run(directory);
+        count += SqliteInventoryChecks.Run(directory);
         Console.WriteLine($"{count} checks passed.");
     }
 }

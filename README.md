@@ -1,17 +1,19 @@
-# Barcode Pro 2.1 Beta 8
+# Barcode Pro ERP 2.1.0
 
 Windows için stok yönetimi, MySQL ürün aktarımı ve TSC etiket baskısı uygulaması.
 
-## Beta kurulumu
+## Kurulum
 
-Beta 8 ürünler, stok hareketleri ve bütün CRUD işlemlerini SQLite 3 veritabanında transaction ile saklar. MySQL tablo/VIEW kolonları önizlenip ortak SQLite envanterine aktarılır. Eski `inventory.json` ilk açılışta otomatik taşınır ve migration yedeği korunur. Arayüz Xfce/Greybird yaklaşımına yakın kompakt gri yüzeyler, mavi aktif alanlar, koyu küçük düğmeler ve çift çizgili pencere çerçevesi kullanır.
+2.1.0, merkezî SQLite veritabanını Windows servisi üzerinden paylaşır. Server penceresi kapalıyken servis çalışmaya devam eder. Ürün ve stok işlemleri güncel veriyi aynı transaction içinde okuyarak eşzamanlı istemcilerin kayıtları birbirini ezmesini önler. MySQL bağlantısının yanında DBeaver `products` SQL dışa aktarımı da önizlenip içe alınabilir. Windows Forms arayüzü DevExpress tarzında kompakt üst menüler, küçük koyu düğmeler, hizalı tablolar ve kurumsal ERP işareti kullanır; ücretli DevExpress bileşeni içermez.
 
-Setup.exe GitHub Releases bölümünde yayımlanır. Windows 10 (1809+) / Windows 11 64 bit desteklenir; kurulum .NET çalışma zamanını içerir. İlk giriş **owner / owner**; bu beta sürümünde sabittir.
+Setup.exe GitHub Releases bölümünde yayımlanır. Windows 10 (1809+) / Windows 11 64 bit desteklenir; kurulum .NET çalışma zamanını içerir. İlk giriş **owner / owner**; bu ilk sürümde sabittir.
 
 - **Ayarlar → MySQL bağlantısı:** sunucu ve kolon eşleştirme, bağlantı testi, önizleme ve tek yönlü aktarım. [Bağlantı kılavuzu](docs/MYSQL-CONNECTION.md).
+- **SQL dosyasından ürün aktarımı:** DBeaver `INSERT INTO products (...) VALUES (...)` dosyası, görsel klasörü veya görsel temel adresi. Kaynak SQL çalıştırılmaz; ürün verisi okunur. JPEG, PNG ve WebP görseller normalize edilerek SQLite içine gömülür ve istemcilere taşınır. Eksik görseller aktarım özetinde belirtilir.
+- **Server kurulumu:** otomatik başlayan `BarcodeProServer` Windows servisi; veri `%PROGRAMDATA%\BarcodePro\Server\inventory.db`. Güncellemeler mevcut merkezî veritabanını değiştirmez. [Server–Client kılavuzu](docs/SERVER-CLIENT.md).
 - **Ayarlar → Firma ve etiket:** firma adı/logo ve 60 × 40 mm, 203 DPI TTP-244CE şablonu.
 - Kurulum dosyası imzasızdır. Canlı müşteri MySQL bağlantısı ve fiziksel yazıcı çıktısı ayrıca doğrulanmalıdır.
-- 161 otomatik kontrol; Server ve Client kurulum/kaldırma paketleri ile yayın dosyalarının bütünlüğü doğrulanır.
+- Otomatik kontroller stok kuralları, eşzamanlı SQLite işlemleri, SQL aktarımı, görsel çözümleme, yazdırma ve arayüz akışlarını kapsar. Yönetici yetkisi gerektiren servis testi ayrıca çalıştırılır.
 
 ![Dashboard](docs/images/dashboard-refresh.png)
 
@@ -24,7 +26,7 @@ Windows, .NET SDK (slnx destekli) ve Inno Setup 6.7+ gerekir:
 ./installer/Test-Setup.ps1
 ```
 
-Çıktılar: `artifacts/installer/BarcodePro-Server-2.1.0-beta.8-Setup-x64.exe` ve `artifacts/installer/BarcodePro-Client-2.1.0-beta.8-Setup-x64.exe`. SHA256 dosyaları aynı dizindedir.
+Çıktılar: `artifacts/installer/BarcodePro-Server-2.1.0-Setup-x64.exe` ve `artifacts/installer/BarcodePro-Client-2.1.0-Setup-x64.exe`. SHA256 dosyaları aynı dizindedir. Genel paketler ürün veya bağlantı verisi içermez. Özel müşteri paketi için `-IncludeCustomerSeed` seçeneği, `artifacts/customer-seed/inventory.db` verisini yalnızca ayrı Customer Server paketine ekler; bu paket herkese açık GitHub yayınına yüklenmemelidir. Mevcut veri varsa korunur ve ürün aktarımı yönetim ekranından yapılır.
 
 Mevcut .NET 8 / Windows Forms stok uygulamasının üzerine eklenen barkod tasarım ve baskı çalışma alanı. Ücretli UI paketi kullanılmaz. Barkod üretimi için Apache-2.0 lisanslı ZXing.Net 0.16.11 kullanılır.
 
@@ -100,7 +102,7 @@ Fiziksel TSC cihazında baskı bu geliştirme ortamında denenmedi. Sürümün i
 - `print-queue.json`: baskı geçmişi ve iş anındaki ürün/şablon kopyaları.
 - `logs/`: teknik hata ayrıntıları.
 
-Tam yedek için uygulama kapalıyken klasörün tamamını kopyalayın. Ayarlardaki JSON dışa aktarımı tek başına ürün görsellerini veya şablonları içermez. Server üzerinden birden fazla Client ortak SQLite envanterini kullanabilir; mobil arayüz ve kamera taraması bu masaüstü kapsamına dahil değildir.
+Server verisi `%PROGRAMDATA%\BarcodePro\Server\` altındadır; diğer kullanıcı ayarları yukarıdaki yerel klasördedir. Dosya kopyasıyla tam yedek alırken servisi ve yönetim uygulamasını durdurup klasörü WAL dosyalarıyla birlikte kopyalayın. SQLite içine gömülmüş ürün görselleri envanter dışa aktarımına dahildir; eski dosya yollarıyla kullanılan görseller ve etiket şablonları ayrıca yedeklenmelidir. Mobil arayüz ve kamera taraması bu masaüstü kapsamına dahil değildir.
 
 ## Kaynak ve geliştirme kaydı
 
@@ -110,6 +112,3 @@ TSPL sözdizimi [TSC TSPL/TSPL2 3.0 kılavuzuna](https://fs.tscprinters.com/syst
 ## Güncel menü düzeni
 
 Referans ERP ekranına uygun olarak geniş ribbon yerine tek sıra ikonlu modül menüsü kullanılır. **Giriş / Ürünler / Stok / Etiket / Baskı / Raporlar / Yazıcılar / Ayarlar** başlıklarına basınca ilgili alt işlemler açılır. Hemen altındaki mavi şeritte açılan ekranlar arasında geçiş yapılır. Dashboard kartları ve Yeni ürün düğmesi pencere büyütüldüğünde gereksiz yere uzamaz.
-
-
-

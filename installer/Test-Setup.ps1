@@ -1,7 +1,8 @@
 param(
-    [string]$Setup = "$PSScriptRoot\..\artifacts\installer\BarcodePro-Client-2.1.0-beta.8-Setup-x64.exe",
+    [string]$Setup = "$PSScriptRoot\..\artifacts\installer\BarcodePro-Client-2.1.0-Setup-x64.exe",
     [string]$AppId = '58D77DCF-22F5-42D1-BBC7-203B6A8EEA61',
-    [switch]$MachineInstall
+    [switch]$MachineInstall,
+    [switch]$ServerInstall
 )
 $ErrorActionPreference='Stop'
 $repository=(Resolve-Path (Join-Path $PSScriptRoot '..')).Path
@@ -13,6 +14,13 @@ New-Item -ItemType Directory -Path $testRoot | Out-Null
 $installDir=Join-Path $testRoot 'app'
 $setupPath=(Resolve-Path -LiteralPath $Setup).Path
 $argsList=@('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/NOICONS','/TASKS=""',('/DIR="'+$installDir+'"'),('/LOG="'+(Join-Path $testRoot 'install.log')+'"'))
+if ($ServerInstall) {
+    $serviceName='BarcodeProSetupCheck'+[Guid]::NewGuid().ToString('N').Substring(0,8)
+    $dataDir=Join-Path $testRoot 'data'
+    $listener=New-Object Net.Sockets.TcpListener([Net.IPAddress]::Loopback,0)
+    $listener.Start();$port=$listener.LocalEndpoint.Port;$listener.Stop()
+    $argsList+=@('/SERVICENAME='+$serviceName,('/SERVERDATADIR="'+$dataDir+'"'),('/SERVERPORT='+$port),('/SOURCEDATA="'+(Join-Path $testRoot 'empty-source.db')+'"'))
+}
 try {
     $process=Start-Process -FilePath $setupPath -ArgumentList $argsList -WindowStyle Hidden -PassThru -Wait
     if($process.ExitCode -ne 0){throw "Setup hata kodu: $($process.ExitCode)"}
@@ -21,7 +29,9 @@ try {
     $runtime=Get-Content -LiteralPath (Join-Path $installDir 'BarcodePrinter.runtimeconfig.json') -Raw | ConvertFrom-Json
     if(!$runtime.runtimeOptions.includedFrameworks -or !(Test-Path -LiteralPath (Join-Path $installDir 'coreclr.dll'))){throw 'Self-contained çalışma zamanı eksik.'}
     foreach($privateFile in @('inventory.db','inventory.json','mysql-connection.json','company.json','printers.json')){if(Test-Path -LiteralPath (Join-Path $installDir $privateFile)){throw "Kişisel veri pakete girmiş: $privateFile"}}
+    if(Test-Path -LiteralPath (Join-Path $installDir 'seed\inventory.db')){throw 'Genel yayın paketinde müşteri başlangıç verisi bulunmamalıdır.'}
     if(!(Test-Path -LiteralPath $uninstallKey)){throw 'Kaldırma kaydı oluşturulmadı.'}
+    if($ServerInstall -and (Get-Service -Name $serviceName).Status -ne 'Running'){throw 'Server servisi kurulum sonrasi calismiyor.'}
     Write-Output "PASS: Kurulum, kaldırma kaydı ve $($files.Count) dosya özeti doğrulandı."
 } finally {
     $uninstaller=Join-Path $installDir 'unins000.exe'
@@ -30,5 +40,6 @@ try {
     if(Test-Path -LiteralPath $uninstaller){$process=Start-Process -FilePath $uninstaller -ArgumentList @('/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',('/LOG="'+(Join-Path $testRoot 'uninstall.log')+'"')) -WindowStyle Hidden -PassThru -Wait;if($process.ExitCode -ne 0){throw "Kaldırma hata kodu: $($process.ExitCode)"}}
 }
 if((Test-Path -LiteralPath (Join-Path $installDir 'BarcodePrinter.exe')) -or (Test-Path -LiteralPath $uninstallKey)){throw 'Test kurulumu tam kaldırılamadı.'}
+if($ServerInstall){if(Get-Service -Name $serviceName -ErrorAction SilentlyContinue){throw 'Test servisi kaldirilmadi.'};if(!(Test-Path -LiteralPath (Join-Path $dataDir 'inventory.db'))){throw 'Kaldirma server verisini korumadi.'}}
 Write-Output "PASS: Kaldırma başarılı. Günlükler: $testRoot"
 

@@ -16,11 +16,11 @@ public class AppWindow : Form
     protected override void OnLoad(EventArgs e)
     {
         base.OnLoad(e);if(caption!=null)return;
-        caption=new Panel{Dock=DockStyle.Top,Height=38,Padding=new Padding(10,0,0,0),Tag="caption"};
-        var logo=new PictureBox{Dock=DockStyle.Left,Width=30,Image=BrandAssets.CreateMark(28),SizeMode=PictureBoxSizeMode.CenterImage};
-        title=new Label{Text=Text,Dock=DockStyle.Fill,TextAlign=ContentAlignment.MiddleLeft,Padding=new Padding(8,0,0,0),Font=new Font("Segoe UI",9.5f,FontStyle.Bold)};
-        var buttons=new FlowLayoutPanel{Dock=DockStyle.Right,Width=132,FlowDirection=FlowDirection.LeftToRight,WrapContents=false,Margin=Padding.Empty,Padding=Padding.Empty};
-        Button CaptionButton(string text,Action action){var b=new Button{Text=text,Width=44,Height=38,FlatStyle=FlatStyle.Flat,Margin=Padding.Empty,TabStop=false,Font=new Font("Segoe UI",11),AccessibleName=text};b.FlatAppearance.BorderSize=0;b.Click+=(_,_)=>action();buttons.Controls.Add(b);return b;}
+        caption=new Panel{Dock=DockStyle.Top,Height=30,Padding=new Padding(6,0,0,0),Tag="caption"};
+        var logo=new PictureBox{Dock=DockStyle.Left,Width=25,Image=BrandAssets.CreateMark(22),SizeMode=PictureBoxSizeMode.CenterImage};
+        title=new Label{Text=Text,Dock=DockStyle.Fill,TextAlign=ContentAlignment.MiddleLeft,Padding=new Padding(6,0,0,0),Font=new Font("Segoe UI",9,FontStyle.Bold)};
+        var buttons=new FlowLayoutPanel{Dock=DockStyle.Right,Width=108,FlowDirection=FlowDirection.LeftToRight,WrapContents=false,Margin=Padding.Empty,Padding=Padding.Empty};
+        Button CaptionButton(string text,Action action){var b=new Button{Text=text,Width=36,Height=30,FlatStyle=FlatStyle.Flat,Margin=Padding.Empty,TabStop=false,Font=new Font("Segoe UI",10),AccessibleName=text};b.FlatAppearance.BorderSize=0;b.Click+=(_,_)=>action();buttons.Controls.Add(b);return b;}
         var minimize=CaptionButton("−",()=>WindowState=FormWindowState.Minimized);minimize.AccessibleName="Simge durumuna küçült";minimize.Enabled=MinimizeBox;
         maximize=CaptionButton("□",()=>ToggleMaximize());maximize.AccessibleName="Büyüt / geri yükle";maximize.Enabled=MaximizeBox;
         var close=CaptionButton("×",Close);close.AccessibleName="Kapat";close.FlatAppearance.MouseOverBackColor=Color.FromArgb(218,66,70);

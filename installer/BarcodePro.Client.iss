@@ -1,27 +1,28 @@
-#define AppName "Barcode Pro Client Beta"
-#define AppVersion "2.1.0-beta.8"
+#define AppName "Barcode Pro Client"
+#define AppVersion "2.1.0"
 #define PublishDir "..\artifacts\publish\win-x64"
 [Setup]
 AppId={{58D77DCF-22F5-42D1-BBC7-203B6A8EEA61}
 AppName={#AppName}
 AppVersion={#AppVersion}
-AppVerName=Barcode Pro Client 2.1 Beta 8
+AppVerName=Barcode Pro Client 2.1.0
 AppPublisher=Barcode Pro
-DefaultDirName={localappdata}\Programs\Barcode Pro Client Beta
-DefaultGroupName=Barcode Pro Client Beta
+DefaultDirName={autopf}\Barcode Pro Client
+UsePreviousAppDir=no
+DefaultGroupName=Barcode Pro Client
 DisableProgramGroupPage=yes
 PrivilegesRequired=admin
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0.17763
 OutputDir=..\artifacts\installer
-OutputBaseFilename=BarcodePro-Client-2.1.0-beta.8-Setup-x64
+OutputBaseFilename=BarcodePro-Client-2.1.0-Setup-x64
 SetupIconFile=..\BarcodePrinter\Assets\BarcodePro.ico
 UninstallDisplayIcon={app}\BarcodePrinter.exe
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
-VersionInfoVersion=2.1.0.8
+VersionInfoVersion=2.1.0.0
 InfoAfterFile=Beta-Readme.txt
 [Languages]
 Name: "turkish"; MessagesFile: "compiler:Languages\Turkish.isl"

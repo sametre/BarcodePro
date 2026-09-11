@@ -1,4 +1,4 @@
-BARCODE PRO 2.1 - BETA 8 SERVER / CLIENT
+BARCODE PRO 2.1.0 - SERVER / CLIENT
 
 SQLITE 3 VE MYSQL ICE AKTARMA
 Urunler, stok hareketleri, silme ve duzenleme islemleri inventory.db SQLite 3
@@ -15,12 +15,28 @@ fiziksel USB, WSD veya IP portunu yazici kuyruguna atar ve etiketi RAW TSPL basa
 
 SERVER VE CLIENT KURULUMU
 Ortak verinin duracağı ana bilgisayara Barcode Pro Server kurulur.
-Server ekranında gösterilen http://IP:5088 adresini not edin ve pencereyi açık tutun.
-Server kurulumu yönetici izniyle TCP 5088 güvenlik duvarı kuralını oluşturur,
-Windows başlangıcını ayarlar ve masaüstüne bağlantı bilgileri dosyası ekler.
+Server, Windows servisi olarak bilgisayar açıldığında otomatik çalışır.
+Server ekranını kapatsanız veya Windows oturumunu kapatsanız da çalışmaya devam eder.
+Kurulum yönetici izniyle TCP 5088 ve UDP 5089 güvenlik duvarı kurallarını
+yalnızca özel/etki alanı ağlarında yerel alt ağ için açar. Servis için ayrı bir
+Windows hesabı ve veri klasörü izni oluşturur. Hata halinde servis yeniden başlar.
+Server ekranı yerel IP, bilgisayar adı, dış IP ve rastgele erişim anahtarını gösterir.
+Bağlantı adresleri ayrıca masaüstündeki bilgi dosyasına yazılır; anahtar bu dosyada yer almaz.
 Diğer bilgisayarlara Barcode Pro Client kurulur.
-Client ilk açılışta Server adresini ve erişim anahtarı owner değerini ister.
+Client açılışında "Sunucuları otomatik bul" ile sunucuyu seçin veya adresini yazın.
+Erişim anahtarını Server ekranından kopyalayın. API anahtarı owner değildir.
 Ürün ve stok değişiklikleri Server bilgisayarındaki ortak envantere kaydedilir.
+Server Yönetimi aynı merkezi SQLite veritabanını kullanır.
+Otomatik bulma aynı yerel ağ içindir. Dış IP bilgisi tek başına dışarıdan erişim sağlamaz;
+internet üzerindeki client için kurumsal VPN veya HTTPS ağ geçidi gerekir.
+
+ÜRÜN SQL DOSYASI VE GÖRSELLER
+Ayarlar > SQL dosyası içe aktar bölümünden DBeaver ürün SQL dosyası seçilebilir.
+Dosyadaki alanlar ürün, stok ve görsel alanlarına dönüştürülür; işlemler SQLite'a kaydolur.
+SQL dosyası görsellerin yalnızca dosya yollarını içeriyorsa gerçek görsel dosyaları
+ayrıca sağlanmalıdır. Eksik görseller aktarım raporunda listelenir.
+Müşteri ürünlerini içeren kurulum, yeni Server veritabanını hazır ürünlerle başlatır.
+Mevcut Server veritabanı korunur; ek ürünler içe aktarma ekranından alınabilir.
 
 İLK GİRİŞ
 Kullanıcı kodu: owner
@@ -58,12 +74,14 @@ Geliştiriciye ait veri veya bağlantı şifresi kurulum paketinde bulunmaz.
 KURULUM VE VERİLER
 Windows 10 (1809 ve sonrası) / Windows 11, 64 bit.
 .NET çalışma zamanı dahildir; kurulum sırasında internet gerekmez.
-Kurulum geçerli Windows kullanıcısı içindir; yönetici izni istemez.
-Program: %LOCALAPPDATA%\Programs\Barcode Pro Beta
-Veriler: %LOCALAPPDATA%\BarcodePro
+Server ve Client kurulumları ve yönetim arayüzleri yönetici izni ister.
+Program: %PROGRAMFILES%\Barcode Pro Server veya Barcode Pro Client
+Server verileri: %PROGRAMDATA%\BarcodePro\Server\inventory.db
+Client ayarları: %LOCALAPPDATA%\BarcodePro
 Kaldırma, ürünleri ve kullanıcı ayarlarını silmez.
-Güncellemeden önce uygulamayı kapatın ve Ayarlar'dan envanter yedeği alın.
-Mevcut Barcode Pro kurulumu varsa aynı kullanıcı verilerini kullanır.
+Server güncellemesi servisi durdurur, dosyaları yeniler ve servisi tekrar başlatır.
+İlk Server geçişinde mevcut kullanıcının eski inventory.db/JSON dosyası güvenli
+SQLite yedeği ile merkezi klasöre taşınır; kaynak dosya korunur.
 
 BETA DOĞRULAMA
 Giriş, şablon, barkod, stok ve MySQL aktarım kuralları otomatik kontrol edildi.

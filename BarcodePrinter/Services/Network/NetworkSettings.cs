@@ -7,7 +7,7 @@ namespace BarcodePrinter.Services.Network;
 public sealed class NetworkSettings
 {
     public string ServerUrl { get; set; } = "http://127.0.0.1:5088";
-    public string AccessKey { get; set; } = "owner";
+    public string AccessKey { get; set; } = "";
     public static string PathName => Path.Combine(JsonStore.Root,"network.json");
     public static NetworkSettings Load() => File.Exists(PathName) ? JsonStore.Read<NetworkSettings>(PathName) : new();
     public void Save() => JsonStore.Save(PathName,this);
@@ -34,10 +34,19 @@ public sealed class RemoteInventoryClient : IDisposable
         http.DefaultRequestHeaders.Add("X-BarcodePro-Key",settings.AccessKey);
     }
     public InventoryData Snapshot()=>Send<InventoryData>(HttpMethod.Get,"api/inventory",null);
-    public void Save(Product product)=>Send<InventoryData>(HttpMethod.Post,"api/products",new SaveProductRequest(product));
-    public void Move(Guid id,string kind,decimal quantity,string note)=>Send<InventoryData>(HttpMethod.Post,"api/stock",new MoveStockRequest(id,kind,quantity,note));
-    public void Delete(Guid id)=>Send<InventoryData>(HttpMethod.Post,"api/products/delete",new DeleteProductRequest(id));
-    public void Seed()=>Send<InventoryData>(HttpMethod.Post,"api/seed",new SeedRequest(true));
+    public InventoryData SnapshotIfChanged(InventoryData current)
+    {
+        using var request=new HttpRequestMessage(HttpMethod.Get,"api/inventory");
+        if(!string.IsNullOrWhiteSpace(current.Revision))request.Headers.TryAddWithoutValidation("If-None-Match","\""+current.Revision+"\"");
+        using var response=http.Send(request);
+        if(response.StatusCode==System.Net.HttpStatusCode.NotModified)return current;
+        response.EnsureSuccessStatusCode();
+        return response.Content.ReadFromJsonAsync<InventoryData>(JsonOptions).GetAwaiter().GetResult()??throw new InvalidOperationException("Server boş yanıt verdi.");
+    }
+    public InventoryData Save(Product product)=>Send<InventoryData>(HttpMethod.Post,"api/products",new SaveProductRequest(product));
+    public InventoryData Move(Guid id,string kind,decimal quantity,string note)=>Send<InventoryData>(HttpMethod.Post,"api/stock",new MoveStockRequest(id,kind,quantity,note));
+    public InventoryData Delete(Guid id)=>Send<InventoryData>(HttpMethod.Post,"api/products/delete",new DeleteProductRequest(id));
+    public InventoryData Seed()=>Send<InventoryData>(HttpMethod.Post,"api/seed",new SeedRequest(true));
     public bool Health()
     {
         using var response=http.GetAsync("api/health").GetAwaiter().GetResult();
