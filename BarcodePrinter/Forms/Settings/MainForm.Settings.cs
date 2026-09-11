@@ -3,7 +3,7 @@ public partial class Form1 {
     private void Settings()
     {
         var flow = Vertical(); flow.Controls.Add(Label("Çalışma alanı", 14, true));
-        flow.Controls.Add(Label(clientMode?"Ürün ve stok kayıtları Barcode Pro Server üzerindeki ortak SQLite 3 veritabanında saklanır.":"Ürünler, stok hareketleri ve MySQL aktarımları transaction destekli SQLite 3 veritabanında saklanır."));
+        flow.Controls.Add(Label(clientMode?"Ürün ve stok kayıtları R3 M-Kobi Server üzerindeki ortak SQLite 3 veritabanında saklanır.":"Ürünler, stok hareketleri ve MySQL aktarımları transaction destekli SQLite 3 veritabanında saklanır."));
         var path = new TextBox { Text = inventory.DatabasePath, ReadOnly = true, Width = 740 }; flow.Controls.Add(path); flow.Controls.Add(Label(""));
         flow.Controls.Add(Button("Yazıcı ayarları ve kalibrasyon", () => { using var f = new BarcodePrinter.Forms.Printers.PrintersForm(); f.ShowDialog(this); UpdateConnection(); })); flow.Controls.Add(Label(""));
         flow.Controls.Add(Button("Veri yedeğini dışa aktar", () => Attempt(() => { using var save = new SaveFileDialog { Filter = "JSON yedeği|*.json", FileName = $"barcode-pro-{DateTime.Now:yyyyMMdd-HHmm}.json" }; if (save.ShowDialog(this) == DialogResult.OK) File.WriteAllText(save.FileName, System.Text.Json.JsonSerializer.Serialize(inventory.Data, new System.Text.Json.JsonSerializerOptions { WriteIndented = true })); })));

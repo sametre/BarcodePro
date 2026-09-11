@@ -45,7 +45,7 @@ public sealed class LanInventoryServer : IAsyncDisposable
             if(!Authorized(c))return Results.Unauthorized();
             try{lock(gate){action();return Results.Json(JsonStore.Clone(inventory.Data));}}catch(InvalidOperationException ex){return Results.BadRequest(ex.Message);}
         }
-        app.MapGet("/api/health",(HttpContext c)=>Authorized(c)?Results.Ok(new{status="ok",server="Barcode Pro Server"}):Results.Unauthorized());
+        app.MapGet("/api/health",(HttpContext c)=>Authorized(c)?Results.Ok(new{status="ok",server="R3 M-Kobi Server"}):Results.Unauthorized());
         app.MapGet("/api/inventory",(HttpContext c)=>
         {
             if(!Authorized(c))return Results.Unauthorized();

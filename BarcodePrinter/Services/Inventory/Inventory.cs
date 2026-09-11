@@ -9,7 +9,7 @@ public sealed class Inventory
     public InventoryData Data { get; private set; }
     public bool IsRemote => remote != null;
     public string Revision => store?.Revision() ?? Data.Revision;
-    public string DatabasePath => store?.Path ?? "Barcode Pro Server / SQLite";
+    public string DatabasePath => store?.Path ?? "R3 M-Kobi Server / SQLite";
     public static readonly string[] MovementKinds = ["Stok girişi", "Stok çıkışı", "Stok düzeltme", "İade", "Fire"];
     public Inventory(string path)
     {

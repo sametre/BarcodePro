@@ -8,12 +8,12 @@ public sealed class LoginForm : AppWindow
     public static bool Authenticate(string username,string password)=>username=="owner"&&password=="owner";
     public LoginForm(CompanyProfile? company=null)
     {
-        company??=CompanyProfile.Load();Text="Barcode Pro · Kullanıcı girişi";ClientSize=new Size(440,420);FormBorderStyle=FormBorderStyle.FixedSingle;MaximizeBox=false;MinimizeBox=false;StartPosition=FormStartPosition.CenterScreen;
+        company??=CompanyProfile.Load();Text="R3 M-Kobi · Kullanıcı girişi";ClientSize=new Size(440,420);FormBorderStyle=FormBorderStyle.FixedSingle;MaximizeBox=false;MinimizeBox=false;StartPosition=FormStartPosition.CenterScreen;
         var layout=new TableLayoutPanel{Dock=DockStyle.Fill,ColumnCount=1,RowCount=7,Padding=new Padding(36,20,36,24)};
         foreach(int height in new[]{64,44,28,36,28,36,60})layout.RowStyles.Add(new RowStyle(SizeType.Absolute,height));
         var brand=new PictureBox{Dock=DockStyle.Fill,SizeMode=PictureBoxSizeMode.Zoom};
         if(company.LogoBase64.Length>0){using var stream=new MemoryStream(Convert.FromBase64String(company.LogoBase64));using var image=Image.FromStream(stream);brand.Image=new Bitmap(image);}else brand.Image=BrandAssets.CreateMark(64);
-        var title=new Label{Text=string.IsNullOrWhiteSpace(company.Name)?"Barcode Pro":company.Name,Font=new Font("Segoe UI",16,FontStyle.Bold),Dock=DockStyle.Fill,TextAlign=ContentAlignment.MiddleCenter,AutoEllipsis=true};
+        var title=new Label{Text=string.IsNullOrWhiteSpace(company.Name)?"R3 M-Kobi":company.Name,Font=new Font("Segoe UI",16,FontStyle.Bold),Dock=DockStyle.Fill,TextAlign=ContentAlignment.MiddleCenter,AutoEllipsis=true};
         var user=new AppTextBox{Dock=DockStyle.Fill,PlaceholderText="Kullanıcı kodu",AccessibleName="Kullanıcı kodu"};var password=new AppTextBox{Dock=DockStyle.Fill,UseSystemPasswordChar=true,AccessibleName="Şifre"};
         var bottom=new Panel{Dock=DockStyle.Fill};var error=new Label{Dock=DockStyle.Bottom,Height=23,ForeColor=Color.Firebrick,TextAlign=ContentAlignment.MiddleCenter};
         var login=new AppButton{Text="Giriş yap",IconKind=AppIcon.Products,Dock=DockStyle.Top,Tag="primary",Height=30};

@@ -18,7 +18,7 @@ public sealed class ServerStatusForm : AppWindow
     private string publicIp="Alınıyor…";
     public ServerStatusForm()
     {
-        Text="Barcode Pro Server · Servis yönetimi";ClientSize=new Size(650,510);MinimumSize=new Size(580,440);StartPosition=FormStartPosition.CenterScreen;
+        Text="R3 M-Kobi Server · Servis yönetimi";ClientSize=new Size(650,510);MinimumSize=new Size(580,440);StartPosition=FormStartPosition.CenterScreen;
         var copy=new AppButton{Text="Bilgileri kopyala",IconKind=AppIcon.Export,Width=145,Height=28};copy.Click+=(_,_)=>{if(!string.IsNullOrWhiteSpace(state.Text))Clipboard.SetText(state.Text);};
         var refresh=new AppButton{Text="Yenile",IconKind=AppIcon.Settings,Width=95,Height=28};refresh.Click+=async(_,_)=>await RefreshStatus();
         var start=new AppButton{Text="Servisi başlat",IconKind=AppIcon.Stock,Width=135,Height=28};start.Click+=async(_,_)=>{try{using var service=new ServiceController(ServerConfiguration.ServiceName);if(service.Status==ServiceControllerStatus.Stopped){service.Start();await Task.Run(()=>service.WaitForStatus(ServiceControllerStatus.Running,TimeSpan.FromSeconds(20)));}await RefreshStatus();}catch(Exception ex){state.Text="Servis başlatılamadı: "+ex.Message;}};
@@ -39,7 +39,7 @@ public sealed class ServerStatusForm : AppWindow
             if(IsDisposed)return;
             using var service=new ServiceController(ServerConfiguration.ServiceName);
             var ips=ServerConfiguration.LocalAddresses().Select(x=>$"http://{x}:{settings.Port}");
-            state.Text="BARCODE PRO SERVER · "+(healthy?"HAZIR":"BAĞLANTI BEKLENİYOR")+"\r\n"+
+            state.Text="R3 M-KOBİ SERVER · "+(healthy?"HAZIR":"BAĞLANTI BEKLENİYOR")+"\r\n"+
                 $"\r\nWindows servisi: {service.Status}\r\nBilgisayar: {Environment.MachineName}\r\nPort: {settings.Port}\r\n"+
                 "\r\nCLIENT BAĞLANTI ADRESLERİ\r\n"+string.Join("\r\n",ips)+$"\r\nhttp://{Environment.MachineName}:{settings.Port}"+
                 "\r\n\r\nErişim anahtarı: "+settings.AccessKey+
@@ -88,7 +88,7 @@ public sealed class ServerStatusForm : AppWindow
         try { using var existing=new ServiceController(ServerConfiguration.ServiceName); _=existing.Status; }
         catch(InvalidOperationException)
         {
-            await RunScAsync("create",ServerConfiguration.ServiceName,"binPath=",binary,"start=","delayed-auto","obj=",$"NT SERVICE\\{ServerConfiguration.ServiceName}","DisplayName=","Barcode Pro Server");
+            await RunScAsync("create",ServerConfiguration.ServiceName,"binPath=",binary,"start=","delayed-auto","obj=",$"NT SERVICE\\{ServerConfiguration.ServiceName}","DisplayName=","R3 M-Kobi Server");
             await RunScAsync("sidtype",ServerConfiguration.ServiceName,"unrestricted");
             await RunScAsync("failure",ServerConfiguration.ServiceName,"reset=","86400","actions=","restart/5000/restart/15000/restart/60000");
         }

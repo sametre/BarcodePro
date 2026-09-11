@@ -10,8 +10,8 @@ public sealed class WindowsPrintService
         using var document=new PrintDocument();document.PrinterSettings.PrinterName=profile.PrinterName;
         document.PrinterSettings.PrintToFile=false;
         if(!document.PrinterSettings.IsValid)throw new InvalidOperationException("Yazıcı bulunamadı veya erişim reddedildi.");
-        document.DocumentName="Barcode Pro — "+template.Name;document.PrintController=new StandardPrintController();
-        document.DefaultPageSettings.PaperSize=new PaperSize("Barcode Pro",(int)Math.Round(template.PageWidthMm*100/25.4),(int)Math.Round(template.PageHeightMm*100/25.4));document.DefaultPageSettings.Margins=new Margins(0,0,0,0);document.OriginAtMargins=false;
+        document.DocumentName="R3 M-Kobi — "+template.Name;document.PrintController=new StandardPrintController();
+        document.DefaultPageSettings.PaperSize=new PaperSize("R3 M-Kobi",(int)Math.Round(template.PageWidthMm*100/25.4),(int)Math.Round(template.PageHeightMm*100/25.4));document.DefaultPageSettings.Margins=new Margins(0,0,0,0);document.OriginAtMargins=false;
         var resolution=document.PrinterSettings.PrinterResolutions.Cast<PrinterResolution>().FirstOrDefault(r=>r.X==profile.Dpi && r.Y==profile.Dpi);if(resolution!=null)document.DefaultPageSettings.PrinterResolution=resolution;
         int index=0,perPage=template.Rows*template.Columns;
         document.PrintPage+=(_,e)=>

@@ -13,7 +13,7 @@ public sealed class ClientConnectionForm : AppWindow
     public NetworkSettings? Settings { get; private set; }
     public ClientConnectionForm()
     {
-        Text="Barcode Pro Client · Server bağlantısı";ClientSize=new Size(520,410);MinimumSize=MaximumSize=Size;StartPosition=FormStartPosition.CenterScreen;
+        Text="R3 M-Kobi Client · Server bağlantısı";ClientSize=new Size(520,410);MinimumSize=MaximumSize=Size;StartPosition=FormStartPosition.CenterScreen;
         var saved=NetworkSettings.Load();address.Text=saved.ServerUrl;key.Text=saved.AccessKey;
         var layout=new TableLayoutPanel{Dock=DockStyle.Fill,Padding=new Padding(24),ColumnCount=1,RowCount=10};
         layout.Controls.Add(new Label{Text="SERVER BAĞLANTISI",AutoSize=true,Font=AppTypography.Heading()});

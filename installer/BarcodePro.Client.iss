@@ -1,15 +1,15 @@
-#define AppName "Barcode Pro Client"
+#define AppName "R3 M-Kobi Client"
 #define AppVersion "2.1.0"
 #define PublishDir "..\artifacts\publish\win-x64"
 [Setup]
 AppId={{58D77DCF-22F5-42D1-BBC7-203B6A8EEA61}
 AppName={#AppName}
 AppVersion={#AppVersion}
-AppVerName=Barcode Pro Client 2.1.0
-AppPublisher=Barcode Pro
+AppVerName=R3 M-Kobi Client 2.1.0
+AppPublisher=R3 M-Kobi
 DefaultDirName={autopf}\BarcodeProClient
 UsePreviousAppDir=no
-DefaultGroupName=Barcode Pro Client
+DefaultGroupName=R3 M-Kobi Client
 DisableProgramGroupPage=yes
 PrivilegesRequired=admin
 ArchitecturesAllowed=x64compatible
@@ -33,7 +33,7 @@ Source: "{#PublishDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
 Source: "Beta-Readme.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "licenses\*"; DestDir: "{app}\licenses"; Flags: ignoreversion
 [Icons]
-Name: "{group}\Barcode Pro Client"; Filename: "{app}\BarcodePrinter.exe"; Parameters: "--client"; WorkingDir: "{app}"
-Name: "{autodesktop}\Barcode Pro Client"; Filename: "{app}\BarcodePrinter.exe"; Parameters: "--client"; WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{group}\R3 M-Kobi Client"; Filename: "{app}\BarcodePrinter.exe"; Parameters: "--client"; WorkingDir: "{app}"
+Name: "{autodesktop}\R3 M-Kobi Client"; Filename: "{app}\BarcodePrinter.exe"; Parameters: "--client"; WorkingDir: "{app}"; Tasks: desktopicon
 [Run]
-Filename: "{app}\BarcodePrinter.exe"; Parameters: "--client"; Description: "Barcode Pro Client'ı başlat"; Flags: nowait postinstall skipifsilent unchecked
+Filename: "{app}\BarcodePrinter.exe"; Parameters: "--client"; Description: "R3 M-Kobi Client'ı başlat"; Flags: nowait postinstall skipifsilent unchecked

@@ -34,11 +34,11 @@ internal static class Program
         }
         var mode=args.Contains("--server",StringComparer.OrdinalIgnoreCase)?"Server":args.Contains("--client",StringComparer.OrdinalIgnoreCase)?"Client":"Inventory";
         using var instance = new Mutex(true, "Local\\BarcodePro."+mode, out bool first);
-        if (!first) { MessageBox.Show("Barcode Pro zaten çalışıyor."); return; }
+        if (!first) { MessageBox.Show("R3 M-Kobi zaten çalışıyor."); return; }
         CultureInfo.DefaultThreadCurrentCulture = CultureInfo.GetCultureInfo("tr-TR");
         CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.GetCultureInfo("tr-TR");
         ApplicationConfiguration.Initialize();
-        Application.ThreadException += (_, e) => { Helpers.JsonStore.Log(e.Exception); MessageBox.Show(e.Exception.Message, "Barcode Pro — İşlem hatası", MessageBoxButtons.OK, MessageBoxIcon.Warning); };
+        Application.ThreadException += (_, e) => { Helpers.JsonStore.Log(e.Exception); MessageBox.Show(e.Exception.Message, "R3 M-Kobi — İşlem hatası", MessageBoxButtons.OK, MessageBoxIcon.Warning); };
         try
         {
             if(args.Contains("--server",StringComparer.OrdinalIgnoreCase)){Application.Run(new ServerStatusForm());return;}
@@ -51,7 +51,7 @@ internal static class Program
             }
             Application.Run(new Form1(inventoryPath:args.Contains("--server-admin",StringComparer.OrdinalIgnoreCase)?ServerConfiguration.InventoryPath:null));
         }
-        catch (Exception ex) { MessageBox.Show("Uygulama başlatılamadı. Mevcut veriler korunmuştur. SQLite veritabanını, eski JSON migration yedeğini ve Server bağlantısını kontrol edin.\n\n" + ex.Message, "Barcode Pro", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+        catch (Exception ex) { MessageBox.Show("Uygulama başlatılamadı. Mevcut veriler korunmuştur. SQLite veritabanını, eski JSON migration yedeğini ve Server bağlantısını kontrol edin.\n\n" + ex.Message, "R3 M-Kobi", MessageBoxButtons.OK, MessageBoxIcon.Error); }
     }
     private static void WriteServiceError(string? directory,Exception error)
     {

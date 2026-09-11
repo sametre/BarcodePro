@@ -1,15 +1,15 @@
-#define AppName "Barcode Pro Server"
+#define AppName "R3 M-Kobi Server"
 #define AppVersion "2.1.0"
 #define PublishDir "..\artifacts\publish\win-x64"
 [Setup]
 AppId={{9540C7A7-5C08-4BB4-9892-9A644DF45501}
 AppName={#AppName}
 AppVersion={#AppVersion}
-AppVerName=Barcode Pro Server 2.1.0
-AppPublisher=Barcode Pro
+AppVerName=R3 M-Kobi Server 2.1.0
+AppPublisher=R3 M-Kobi
 DefaultDirName={autopf}\BarcodeProServer
 UsePreviousAppDir=no
-DefaultGroupName=Barcode Pro Server
+DefaultGroupName=R3 M-Kobi Server
 DisableProgramGroupPage=yes
 PrivilegesRequired=admin
 ArchitecturesAllowed=x64compatible
@@ -43,11 +43,11 @@ Source: "..\artifacts\customer-seed\inventory.db"; DestDir: "{app}\seed"; Flags:
 #endif
 #endif
 [Icons]
-Name: "{group}\Barcode Pro Server"; Filename: "{app}\BarcodePrinter.exe"; Parameters: "--server"; WorkingDir: "{app}"
-Name: "{group}\Barcode Pro Server Yönetimi"; Filename: "{app}\BarcodePrinter.exe"; Parameters: "--server-admin"; WorkingDir: "{app}"
-Name: "{autodesktop}\Barcode Pro Server"; Filename: "{app}\BarcodePrinter.exe"; Parameters: "--server"; WorkingDir: "{app}"; Tasks: desktopicon
+Name: "{group}\R3 M-Kobi Server"; Filename: "{app}\BarcodePrinter.exe"; Parameters: "--server"; WorkingDir: "{app}"
+Name: "{group}\R3 M-Kobi Server Yönetimi"; Filename: "{app}\BarcodePrinter.exe"; Parameters: "--server-admin"; WorkingDir: "{app}"
+Name: "{autodesktop}\R3 M-Kobi Server"; Filename: "{app}\BarcodePrinter.exe"; Parameters: "--server"; WorkingDir: "{app}"; Tasks: desktopicon
 [Run]
-Filename: "{app}\BarcodePrinter.exe"; Parameters: "--server"; Description: "Barcode Pro Server'ı başlat"; Flags: nowait postinstall skipifsilent unchecked
+Filename: "{app}\BarcodePrinter.exe"; Parameters: "--server"; Description: "R3 M-Kobi Server'ı başlat"; Flags: nowait postinstall skipifsilent unchecked
 [Code]
 function ConfigureServer(ScriptPath, Extra: String): Boolean;
 var ExitCode: Integer; SettingsPath, ServiceName, DataPath, Port, SourcePath, Arguments: String;
