@@ -10,6 +10,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <EmbeddedResource Include="Assets\R3-M-Kobi-Jupiter.png" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="MySqlConnector" Version="2.6.2" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.31" />

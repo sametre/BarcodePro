@@ -1,4 +1,5 @@
 using BarcodePrinter;
+using SkiaSharp;
 
 internal static class Program
 {
@@ -9,6 +10,7 @@ internal static class Program
         if(args.Length>=3 && args[0]=="--customer-import") { CustomerSeedPreparation.ImportExisting(args[1],args[2],args.Length>3?args[3]:null,args.Length>4?args[4]:null); return; }
         if(args.Length>=3 && args[0]=="--export-json") { CustomerSeedPreparation.ExportJson(args[1],args[2]); return; }
         if(args.Length == 2 && args[0] == "--brand-assets") { Directory.CreateDirectory(args[1]); File.WriteAllBytes(Path.Combine(args[1], "BarcodePro.ico"), BarcodePrinter.Themes.BrandAssets.CreateIcon()); using var mark = BarcodePrinter.Themes.BrandAssets.CreateMark(512); mark.Save(Path.Combine(args[1], "BarcodePro.png"), System.Drawing.Imaging.ImageFormat.Png); return; }
+        if(args.Length == 3 && args[0] == "--jupiter-icon") { CreateJupiterIcon(args[1], args[2]); return; }
         var directory = Path.Combine(Path.GetTempPath(), "BarcodePro-checks-" + Guid.NewGuid());
         Directory.CreateDirectory(directory);
         if(args.Contains("--storage-checks")) { Console.WriteLine($"{SqlImportChecks.Run(directory) + SqliteInventoryChecks.Run(directory)} storage checks passed."); return; }
@@ -61,6 +63,23 @@ internal static class Program
         count += SqlImportChecks.Run(directory);
         count += SqliteInventoryChecks.Run(directory);
         Console.WriteLine($"{count} checks passed.");
+    }
+
+    private static void CreateJupiterIcon(string input, string outputDirectory)
+    {
+        Directory.CreateDirectory(outputDirectory);
+        using var source = SKBitmap.Decode(input) ?? throw new InvalidDataException("AVIF görseli okunamadı.");
+        using var square = new SKBitmap(512,512,SKColorType.Rgba8888,SKAlphaType.Premul);
+        using(var canvas=new SKCanvas(square))
+        {
+            canvas.Clear(new SKColor(54,60,67));
+            var side=Math.Min(source.Width,source.Height)*.68f;var src=new SKRect((source.Width-side)/2f,(source.Height-side)/2f,(source.Width+side)/2f,(source.Height+side)/2f);
+            using var clip=new SKPath();clip.AddOval(new SKRect(34,34,478,478));canvas.Save();canvas.ClipPath(clip);canvas.DrawBitmap(source,src,new SKRect(34,34,478,478));canvas.Restore();
+            using var pen=new SKPaint{Style=SKPaintStyle.Stroke,Color=new SKColor(190,196,202),StrokeWidth=8,IsAntialias=true};canvas.DrawOval(new SKRect(34,34,478,478),pen);
+        }
+        using var png=square.Encode(SKEncodedImageFormat.Png,100);File.WriteAllBytes(Path.Combine(outputDirectory,"R3-M-Kobi-Jupiter.png"),png.ToArray());
+        var sizes=new[]{16,24,32,48,64,128,256};var images=new List<byte[]>();foreach(var size in sizes){using var bmp=new SKBitmap(size,size);using(var c=new SKCanvas(bmp)){c.DrawBitmap(square,new SKRect(0,0,size,size));}using var encoded=bmp.Encode(SKEncodedImageFormat.Png,100);images.Add(encoded.ToArray());}
+        using var result=new MemoryStream();using var writer=new BinaryWriter(result);writer.Write((ushort)0);writer.Write((ushort)1);writer.Write((ushort)sizes.Length);int offset=6+16*sizes.Length;for(int i=0;i<sizes.Length;i++){writer.Write((byte)(sizes[i]==256?0:sizes[i]));writer.Write((byte)(sizes[i]==256?0:sizes[i]));writer.Write((byte)0);writer.Write((byte)0);writer.Write((ushort)1);writer.Write((ushort)32);writer.Write(images[i].Length);writer.Write(offset);offset+=images[i].Length;}foreach(var image in images)writer.Write(image);File.WriteAllBytes(Path.Combine(outputDirectory,"BarcodePro.ico"),result.ToArray());
     }
 }
 

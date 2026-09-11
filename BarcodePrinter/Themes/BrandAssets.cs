@@ -5,6 +5,14 @@ public static class BrandAssets
 {
     public static Bitmap CreateMark(int size)
     {
+        using (var resource=typeof(BrandAssets).Assembly.GetManifestResourceStream("BarcodePrinter.Assets.R3-M-Kobi-Jupiter.png"))
+        using (var source=resource is null?null:Image.FromStream(resource))
+        {
+            if(source is not null)
+            {
+                var icon=new Bitmap(size,size);using var canvas=Graphics.FromImage(icon);canvas.Clear(Color.FromArgb(54,60,67));canvas.InterpolationMode=System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;canvas.DrawImage(source,new Rectangle(0,0,size,size));return icon;
+            }
+        }
         var image=new Bitmap(size,size);using var g=Graphics.FromImage(image);g.SmoothingMode=SmoothingMode.AntiAlias;g.ScaleTransform(size/64f,size/64f);
         g.Clear(Color.Transparent);
 
