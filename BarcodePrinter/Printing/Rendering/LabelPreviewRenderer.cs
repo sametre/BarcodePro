@@ -37,7 +37,7 @@ public sealed class LabelPreviewRenderer
                     case TextElement text:
                         DrawText(g,text,DynamicFields.Resolve(text.Text,product,template.PriceFormat,at),w,h,dpi);break;
                     case BarcodeElement barcode:
-                        DrawBarcode(g,DynamicFields.Resolve(barcode.Value,product,template.PriceFormat,at),barcode.BarcodeType,w,h,dpi,barcode.HumanReadableText,barcode.TextAbove,barcode.ModuleWidth,barcode.BarHeight);break;
+                        DrawBarcode(g,DynamicFields.Resolve(barcode.Value,product,template.PriceFormat,at),barcode.BarcodeType,w,h,dpi,barcode.HumanReadableText,barcode.TextAbove,barcode.ModuleWidth,barcode.BarHeight,barcode.Code39FullAscii);break;
                     case QrCodeElement qr:
                         DrawBarcode(g,DynamicFields.Resolve(qr.Value,product,template.PriceFormat,at),BarcodeKind.QRCode,w,h,dpi,false,false,.1,0);break;
                     case ImageElement image:
@@ -75,14 +75,15 @@ public sealed class LabelPreviewRenderer
         string first=(format==PriceFormat.PrefixSymbol?"₺":"")+parts[0], second=(format==PriceFormat.DotTL?".":",")+parts[1]+(format==PriceFormat.PrefixSymbol?"":format==PriceFormat.SuffixSymbol?" ₺":" TL");
         var size=g.MeasureString(first,whole);g.DrawString(first,whole,Brushes.Black,0,Math.Max(0,(h-size.Height)/2));g.DrawString(second,fraction,Brushes.Black,size.Width-3,Math.Max(0,(h-size.Height)/2));
     }
-    private static void DrawBarcode(Graphics g,string value,BarcodeKind kind,float w,float h,double dpi,bool readable,bool above,double module,double barHeight)
+    private static void DrawBarcode(Graphics g,string value,BarcodeKind kind,float w,float h,double dpi,bool readable,bool above,double module,double barHeight,bool fullAscii=false)
     {
-        ValidationService.Barcode(value,kind);
+        ValidationService.Barcode(value,kind,fullAscii);
+        var encodedValue=kind==BarcodeKind.Code39&&fullAscii?ValidationService.EncodeCode39FullAscii(value):value;
         var qr=kind==BarcodeKind.QRCode;
         var hints=new Dictionary<EncodeHintType,object> { [EncodeHintType.MARGIN]=qr?4:10, [EncodeHintType.CHARACTER_SET]="UTF-8" };
-        var matrix=new MultiFormatWriter().encode(value,ValidationService.Format(kind),0,0,hints);
+        var matrix=new MultiFormatWriter().encode(encodedValue,ValidationService.Format(kind),0,0,hints);
         int scale=(int)Math.Floor(qr?Math.Min(w/matrix.Width,h/matrix.Height):w/matrix.Width);
-        if(scale<1 || (!qr && scale<Math.Max(1,PrinterUnitConverter.MmToDots(module,(int)dpi)))) throw new InvalidOperationException("Barkod kutusu dar; genişliği artırın veya modül genişliğini azaltın.");
+        if(scale<1) throw new InvalidOperationException("Barkod kutusu dar; genişliği artırın veya modül genişliğini azaltın.");
         float textHeight=readable&&!qr?(float)(8*dpi/72*1.3):0;
         float bars=barHeight>0?Math.Min((float)PrinterUnitConverter.MmToPixels(barHeight,dpi),h-textHeight):h-textHeight;
         if(bars<1) throw new InvalidOperationException("Barkod yüksekliği yetersiz.");

@@ -3,6 +3,22 @@ using ZXing;
 namespace BarcodePrinter.Services.Validation;
 public static class ValidationService
 {
+    public static string EncodeCode39FullAscii(string value)
+    {
+        var result = new System.Text.StringBuilder(value.Length);
+        foreach (var c in value)
+        {
+            if (c > 127) throw new InvalidOperationException("Code 39 Full ASCII yalnızca Windows-1252'nin ASCII dışı olmayan karakterleri için desteklenir; barkod metnini sadeleştirin.");
+            result.Append(c switch
+            {
+                '\0' => "%U", '\u0001' => "$A", '\u0002' => "$B", '\u0003' => "$C", '\u0004' => "$D", '\u0005' => "$E", '\u0006' => "$F", '\u0007' => "$G", '\u0008' => "$H", '\u0009' => "$I", '\u000A' => "$J", '\u000B' => "$K", '\u000C' => "$L", '\u000D' => "$M", '\u000E' => "$N", '\u000F' => "$O", '\u0010' => "$P", '\u0011' => "$Q", '\u0012' => "$R", '\u0013' => "$S", '\u0014' => "$T", '\u0015' => "$U", '\u0016' => "$V", '\u0017' => "$W", '\u0018' => "$X", '\u0019' => "$Y", '\u001A' => "$Z", '\u001B' => "%A", '\u001C' => "%B", '\u001D' => "%C", '\u001E' => "%D", '\u001F' => "%E",
+                '!' => "/A", '"' => "/B", '#' => "/C", '$' => "/D", '%' => "/E", '&' => "/F", '\'' => "/G", '(' => "/H", ')' => "/I", '*' => "/J", '+' => "/K", ',' => "/L", '/' => "/O", ':' => "/Z", ';' => "%F", '<' => "%G", '=' => "%H", '>' => "%I", '?' => "%J", '@' => "%V", '[' => "%K", '\\' => "%L", ']' => "%M", '^' => "%N", '_' => "%O", '`' => "%W", '{' => "%P", '|' => "%Q", '}' => "%R", '~' => "%S", '\u007F' => "%T",
+                >= 'a' and <= 'z' => $"+{char.ToUpperInvariant(c)}",
+                _ => c.ToString()
+            });
+        }
+        return result.ToString();
+    }
     public static bool Ean(string value, int length)
     {
         if (value.Length != length || value.Any(c => c < '0' || c > '9')) return false;
@@ -10,11 +26,11 @@ public static class ValidationService
         return (10 - sum % 10) % 10 == value[^1] - '0';
     }
     public static BarcodeFormat Format(BarcodeKind kind) => kind switch { BarcodeKind.EAN13 => BarcodeFormat.EAN_13, BarcodeKind.EAN8 => BarcodeFormat.EAN_8, BarcodeKind.Code128 => BarcodeFormat.CODE_128, BarcodeKind.Code39 => BarcodeFormat.CODE_39, BarcodeKind.UPCA => BarcodeFormat.UPC_A, BarcodeKind.UPCE => BarcodeFormat.UPC_E, BarcodeKind.ITF => BarcodeFormat.ITF, BarcodeKind.Codabar => BarcodeFormat.CODABAR, BarcodeKind.QRCode => BarcodeFormat.QR_CODE, _ => throw new InvalidOperationException("Desteklenmeyen barkod türü.") };
-    public static void Barcode(string value, BarcodeKind kind)
+    public static void Barcode(string value, BarcodeKind kind, bool fullAscii=false)
     {
         if (string.IsNullOrWhiteSpace(value)) throw new InvalidOperationException("Barkod verisi boş.");
         if ((kind == BarcodeKind.EAN13 && !Ean(value,13)) || (kind == BarcodeKind.EAN8 && !Ean(value,8)) || (kind == BarcodeKind.UPCA && !Ean(value,12))) throw new InvalidOperationException($"{kind}: uzunluk veya kontrol basamağı geçersiz.");
-        try { new MultiFormatWriter().encode(value, Format(kind), 1, 1); }
+        try { new MultiFormatWriter().encode(kind==BarcodeKind.Code39&&fullAscii?EncodeCode39FullAscii(value):value, Format(kind), 1, 1); }
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException) { throw new InvalidOperationException($"{kind}: geçersiz barkod. {ex.Message}",ex); }
     }
     public static void Template(LabelTemplate t)

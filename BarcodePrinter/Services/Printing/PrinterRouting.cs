@@ -34,8 +34,15 @@ public static class PrinterRouting
     public static IReadOnlyList<string> AutomaticCandidates(IEnumerable<string> ports)
     {
         var usable=ports.Where(p=>!IsFilePort(p)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-        var usb=usable.Where(p=>p.StartsWith("USB",StringComparison.OrdinalIgnoreCase)).ToList();if(usb.Count>0)return usb;
+        var usb=usable.Where(IsUsbPort).OrderBy(p=>UsbPortRank(p)).ToList();if(usb.Count>0)return usb;
         return usable.Where(p=>p.StartsWith("WSD-",StringComparison.OrdinalIgnoreCase)||p.StartsWith("IP_",StringComparison.OrdinalIgnoreCase)).ToList();
+    }
+    public static bool IsUsbPort(string port) => System.Text.RegularExpressions.Regex.IsMatch(port.Trim(), "^USB0*\\d+$", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+    private static int UsbPortRank(string port)
+    {
+        var digits=new string(port.Where(char.IsDigit).ToArray());
+        if (int.TryParse(digits,out var n)) return n == 2 ? 0 : n + 1;
+        return int.MaxValue;
     }
     public static string EnsurePhysicalPort(string printerName,string? currentPort)
     {

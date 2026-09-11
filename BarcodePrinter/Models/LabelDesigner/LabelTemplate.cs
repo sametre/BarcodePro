@@ -48,6 +48,9 @@ public class BarcodeElement : LabelElement
     [Category("Barkod")] public bool TextAbove { get; set; }
     [Category("Barkod"), Description("En dar modülün minimum genişliği, mm.")] public double ModuleWidth { get; set; } = 0.25;
     [Category("Barkod"), Description("0: nesne yüksekliğine otomatik sığdır.")] public double BarHeight { get; set; }
+    [Category("Barkod"), Description("Code 39 için Full ASCII dönüşümü uygular.")] public bool Code39FullAscii { get; set; }
+    [Category("Barkod"), Description("Metin karakter seti.")] public string CharacterSet { get; set; } = "Western";
+    [Category("Barkod"), Description("Windows kod sayfası.")] public int CodePage { get; set; } = 1252;
 }
 public class QrCodeElement : LabelElement { [Category("QR")] public string Value { get; set; } = "{{Barcode}}"; }
 public class ImageElement : LabelElement

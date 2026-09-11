@@ -12,7 +12,7 @@ public static class Ttp244CeTemplate
             new TextElement{Name="Firma adı",Text=string.IsNullOrWhiteSpace(company.Name)?"FİRMA ADI":company.Name,Xmm=logo?14:2,Ymm=2,WidthMm=logo?44:56,HeightMm=7,FontSize=11,Bold=true,Alignment=TextAlignment.Center},
             new LineElement{Name="Başlık ayırıcı",Xmm=2,Ymm=10,WidthMm=56,HeightMm=.3,ThicknessMm=.2},
             new TextElement{Name="Ürün adı",Text="{{ProductName}}",Xmm=2,Ymm=11,WidthMm=56,HeightMm=6,FontSize=10,Bold=true,Alignment=TextAlignment.Center},
-            new BarcodeElement{Name="Ürün barkodu",Xmm=3,Ymm=18,WidthMm=54,HeightMm=13,ModuleWidth=.25,HumanReadableText=true},
+            new BarcodeElement{Name="Ürün barkodu",Xmm=3,Ymm=18,WidthMm=54,HeightMm=13,BarcodeType=BarcodeKind.Code39,ModuleWidth=.50,Code39FullAscii=true,CharacterSet="Western",CodePage=1252,HumanReadableText=true},
             new TextElement{Name="SKU",Text="{{SKU}}",Xmm=2,Ymm=33,WidthMm=27,HeightMm=5,FontSize=8},
             new TextElement{Name="Satış fiyatı",Text="{{Price}}",Xmm=30,Ymm=32,WidthMm=28,HeightMm=6,FontSize=12,Bold=true,Alignment=TextAlignment.Right}
         ]};

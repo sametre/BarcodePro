@@ -73,7 +73,7 @@ public sealed class RawPrinterService
             bool started=false;
             try
             {
-                if (WindowsPrinterInterop.StartDocPrinter(handle,1,ref doc)==0) throw new Win32Exception(Marshal.GetLastWin32Error()); started=true;
+                if (WindowsPrinterInterop.StartDocPrinter(handle,1,ref doc)==0) throw new Win32Exception(Marshal.GetLastWin32Error(),$"'{printerName}' yazıcısında RAW iş başlatılamadı. USB2/USB002 portunu ve yazıcı kuyruğunu kontrol edin."); started=true;
                 WindowsPrinterInterop.Ensure(WindowsPrinterInterop.StartPagePrinter(handle));
                 var pin=GCHandle.Alloc(data,GCHandleType.Pinned);
                 try { int offset=0; while(offset<data.Length) { WindowsPrinterInterop.Ensure(WindowsPrinterInterop.WritePrinter(handle,IntPtr.Add(pin.AddrOfPinnedObject(),offset),data.Length-offset,out int written)); if(written<=0) throw new IOException("Spooler veri kabul etmedi."); offset+=written; } } finally { pin.Free(); }
