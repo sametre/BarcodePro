@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="BarcodePrinter/BarcodePrinter.csproj" />
   <Project Path="BarcodePrinter.Checks/BarcodePrinter.Checks.csproj" />
+  <Project Path="R3LicenseGenerator/R3LicenseGenerator.csproj" />
 </Solution>

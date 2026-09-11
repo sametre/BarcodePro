@@ -1,28 +1,26 @@
-# Server ve Client — 2.1.0
+# R3 M-Kobi Server and Client
 
-Server Setup.exe dosyasını ana Windows bilgisayarında yönetici olarak çalıştırın. Kurulum, `BarcodeProServer` Windows servisini gecikmeli otomatik başlatma ve hata sonrası yeniden başlatma ile kaydeder. Server yönetim penceresini kapatmak servisi durdurmaz.
+Install Server on the Windows computer that owns the inventory. The installer registers the `BarcodeProServer` service with delayed automatic start and recovery. Closing the administration window does not stop the service.
 
-Merkezî ürünler ve hareketler `%PROGRAMDATA%\BarcodePro\Server\inventory.db` içinde tutulur. WAL kullanan SQLite, stok güncellemesiyle hareket kaydını aynı transaction içinde yazar. Her değişiklik veritabanındaki güncel stoğu okur; ayrı yönetim penceresi ve birden fazla istemci aynı dosyayı paylaşır. İstemciler SQLite dosyasını ağ paylaşımı olarak açmaz; Server API üzerinden işlem yapar.
+The central database is `%PROGRAMDATA%\BarcodePro\Server\inventory.db`. SQLite WAL mode records stock changes and movement history in one transaction. Clients use the Server API and never open the SQLite file as a network share.
 
-## İlk veri ve güncelleme
+## SQL product import
 
-Kurulumda mevcut merkezî veritabanı varsa olduğu gibi korunur. Yoksa aynı kullanıcının önceki `%LOCALAPPDATA%\BarcodePro\inventory.db` veya `inventory.json` envanteri taşınır. Bunlar da yoksa kurulumla paketlenen ilk ürün verisi kullanılır. Taşıma SQLite Backup API kullanır, böylece WAL içindeki kayıtlar da alınır. Eski JSON dosyası ve migration yedeği korunur. Kaldırma işlemi merkezî veriyi silmez.
+Open **Server Administration → Settings → SQL table import**, select a `.sql` export containing `products` INSERT statements, preview the rows, optionally select an image folder or image base URL, then choose **Import to SQLite**. Barcode and SKU matches update existing products; new rows are added. Existing stock is preserved unless the stock option is enabled. Imports are transactional.
 
-Mevcut envantere yeni SQL ürün dosyası eklemek için Server Yönetimi → Ayarlar → SQL dosyasından ürün aktarımı kullanılır. Barkod/SKU ile eşleşen ürünler güncellenir; bulunmayanlar eklenir. Mevcut stokları değiştirme seçeneği varsayılan olarak kapalıdır. Tüm toplu aktarım tek transaction içinde gerçekleşir.
+## Client connection
 
-## İstemci bağlantısı
+1. Install Client on the other computers.
+2. Use automatic discovery over UDP 5089, or enter the Server address shown by the administration screen, for example `http://HOSTNAME:5088`.
+3. Enter the Server access key and test the connection.
+4. Product and stock operations are then written to the central SQLite database.
 
-1. Diğer bilgisayarlara Client Setup.exe kurun.
-2. Client bağlantı ekranı yerel ağdaki Server'ı UDP 5089 üzerinden arar. Bulamazsa Server ekranındaki `http://bilgisayar-adı:5088` veya yerel IP adresini girin.
-3. Server ekranında gösterilen kurulum başına rastgele erişim anahtarını Client'a girin. Ürün uygulamasının beta kullanıcı kodu ve şifresi `owner / owner`; ağ erişim anahtarı bundan farklıdır.
-4. Bağlantıyı test edip kaydedin. Ürün ekleme/düzenleme, silme ve stok hareketleri Server SQLite veritabanına gider. F5 veya sayfa geçişiyle güncel veri alınır; istemci açıkken periyodik yenileme de yapılır.
+The application login is `owner` / `owner`. This is separate from the network access key.
 
-## Yetkiler ve dış ağ
+## Licensing
 
-Setup ve uygulama yönetici yetkisi ister. Servis kendi `NT SERVICE\BarcodeProServer` hesabında çalışır; veri klasörüne servis, SYSTEM ve yöneticiler erişebilir. Windows güvenlik duvarında yalnızca uygulamanın TCP 5088 ve keşif UDP 5089 kuralları açılır; Özel/Etki Alanı profilleri ve yerel alt ağ ile sınırlıdır.
+Both editions require a valid `license.json`. The private local generator creates a six-character mixed key and expiry date. Copy the file to the activation screen and enter the key. Server licenses are stored under `%PROGRAMDATA%\R3-M-Kobi`; Client licenses are stored under `%LOCALAPPDATA%\R3-M-Kobi`. An expired license stops the application and the Server service.
 
-Dış IP, internet varsa otomatik sorgulanır ve bilgi olarak gösterilir. Dış IP göstermek modem/NAT/CGNAT engelini kaldırmaz. Farklı şubeleri bağlamak için kurumsal VPN veya HTTPS ağ geçidi gerekir; uygulama modem şifresi istemez, UPnP ile otomatik port açmaz. VPN farklı alt ağ kullanıyorsa ağ yöneticisi kuralın uzak adres kapsamına o VPN ağını eklemelidir. Kurulum bağlantı bilgileri dosyasını masaüstüne de yazar.
+## Network and permissions
 
-## Yönetici testi
-
-Normal `dotnet run --project BarcodePrinter.Checks` servis kaydı yapmadan API ve SQLite kurallarını sınar. `installer/Test-Service.ps1` (varsa) ayrı servis adı, port ve geçici veri klasörüyle yönetici testi yapar. Test sonucunu gerçek müşteri ağ erişimi ve fiziksel TSC baskı kabul testinden ayrı değerlendirin.
+Server setup requires administrator permission. The installer creates TCP 5088 and UDP 5089 firewall rules for Private and Domain profiles and prints the local and external addresses in the Server information file. Use a VPN or HTTPS gateway for internet access.

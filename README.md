@@ -1,114 +1,55 @@
-# Barcode Pro ERP 2.1.0
+# R3 M-Kobi
 
-Windows için stok yönetimi, MySQL ürün aktarımı ve TSC etiket baskısı uygulaması.
+R3 M-Kobi is a compact Windows inventory, barcode and label management system for small and medium businesses. It provides DevExpress-inspired top navigation, aligned data grids, SQLite storage, centralized Server/Client mode, SQL product import and direct TSC/TTP label printing.
 
-## Kurulum
+## Editions
 
-2.1.0, merkezî SQLite veritabanını Windows servisi üzerinden paylaşır. Server penceresi kapalıyken servis çalışmaya devam eder. Ürün ve stok işlemleri güncel veriyi aynı transaction içinde okuyarak eşzamanlı istemcilerin kayıtları birbirini ezmesini önler. MySQL bağlantısının yanında DBeaver `products` SQL dışa aktarımı da önizlenip içe alınabilir. Windows Forms arayüzü DevExpress tarzında kompakt üst menüler, küçük koyu düğmeler, hizalı tablolar ve kurumsal ERP işareti kullanır; ücretli DevExpress bileşeni içermez.
+- **Server** — Windows service with a central SQLite database, LAN API, firewall setup and administration screens.
+- **Client** — connects to the Server over the local network and synchronizes product, stock and print operations.
+- **Local** — uses a local SQLite database when a central Server is not required.
 
-Setup.exe GitHub Releases bölümünde yayımlanır. Windows 10 (1809+) / Windows 11 64 bit desteklenir; kurulum .NET çalışma zamanını içerir. İlk giriş **owner / owner**; bu ilk sürümde sabittir.
+The first application login is `owner` / `owner`. Server and Client installations require a valid R3 license file. The license generator is intentionally built and kept locally; it is not uploaded to GitHub.
 
-- **Ayarlar → MySQL bağlantısı:** sunucu ve kolon eşleştirme, bağlantı testi, önizleme ve tek yönlü aktarım. [Bağlantı kılavuzu](docs/MYSQL-CONNECTION.md).
-- **SQL dosyasından ürün aktarımı:** DBeaver `INSERT INTO products (...) VALUES (...)` dosyası, görsel klasörü veya görsel temel adresi. Kaynak SQL çalıştırılmaz; ürün verisi okunur. JPEG, PNG ve WebP görseller normalize edilerek SQLite içine gömülür ve istemcilere taşınır. Eksik görseller aktarım özetinde belirtilir.
-- **Server kurulumu:** otomatik başlayan `BarcodeProServer` Windows servisi; veri `%PROGRAMDATA%\BarcodePro\Server\inventory.db`. Güncellemeler mevcut merkezî veritabanını değiştirmez. [Server–Client kılavuzu](docs/SERVER-CLIENT.md).
-- **Ayarlar → Firma ve etiket:** firma adı/logo ve 60 × 40 mm, 203 DPI TTP-244CE şablonu.
-- Kurulum dosyası imzasızdır. Canlı müşteri MySQL bağlantısı ve fiziksel yazıcı çıktısı ayrıca doğrulanmalıdır.
-- Otomatik kontroller stok kuralları, eşzamanlı SQLite işlemleri, SQL aktarımı, görsel çözümleme, yazdırma ve arayüz akışlarını kapsar. Yönetici yetkisi gerektiren servis testi ayrıca çalıştırılır.
+## Main features
 
-![Dashboard](docs/images/dashboard-refresh.png)
+- Dashboard metrics, recent movements and critical-stock views.
+- Product CRUD with barcode/SKU uniqueness checks and image storage.
+- Stock in, stock out, return, waste and audited stock correction operations.
+- SQL import from `products` INSERT exports, with preview, field preservation and optional image loading.
+- TSC TTP-244CE direct TSPL output, Code 39 Full ASCII, 0.50 mm X dimension and Windows-1252 support.
+- Compact gray controls, transparent matte-gray R3 mark, icon-based caption buttons and context menus.
 
-## Setup üretimi
+![Dashboard](docs/images/ribbon-dashboard.png)
+![Print layout](docs/images/print-layout.png)
+![SQL import settings](docs/images/mysql-settings.png)
 
-Windows, .NET SDK (slnx destekli) ve Inno Setup 6.7+ gerekir:
+## Build
 
-```powershell
-./installer/Build-Setup.ps1 -Compiler 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe'
-./installer/Test-Setup.ps1
-```
-
-Çıktılar: `artifacts/installer/BarcodePro-Server-2.1.0-Setup-x64.exe` ve `artifacts/installer/BarcodePro-Client-2.1.0-Setup-x64.exe`. SHA256 dosyaları aynı dizindedir. Genel paketler ürün veya bağlantı verisi içermez. Özel müşteri paketi için `-IncludeCustomerSeed` seçeneği, `artifacts/customer-seed/inventory.db` verisini yalnızca ayrı Customer Server paketine ekler; bu paket herkese açık GitHub yayınına yüklenmemelidir. Mevcut veri varsa korunur ve ürün aktarımı yönetim ekranından yapılır.
-
-Mevcut .NET 8 / Windows Forms stok uygulamasının üzerine eklenen barkod tasarım ve baskı çalışma alanı. Ücretli UI paketi kullanılmaz. Barkod üretimi için Apache-2.0 lisanslı ZXing.Net 0.16.11 kullanılır.
-
-## Çalıştırma ve doğrulama
+Requirements: Windows 10 1809 or later, .NET 8 SDK and Inno Setup 6.7+.
 
 ```powershell
-dotnet build BarcodePrinter.slnx
-dotnet run --project BarcodePrinter.Checks
-dotnet run --project BarcodePrinter
+dotnet build BarcodePrinter.slnx -c Release
+dotnet run --project BarcodePrinter.Checks -c Release --no-build
+.\installer\Build-Setup.ps1 -SkipChecks
 ```
 
-Windows 10/11 ve .NET 8 Desktop Runtime gerekir. `ApplicationHighDpiMode=PerMonitorV2` açıktır. Çözüm hem uygulamayı hem Checks projesini içerir. NuGet.Config, nuget.org kaynağını proje kapsamında tanımlar.
+Setup files are created under `artifacts/installer`. Public packages contain no customer inventory.
 
-## Stok yönetimi
+## Local license generator
 
-Dashboard, arama/filtreleme/sıralama ve 75 satırlık sayfalama sunan ürün tablosu, kolon görünürlüğü, çoklu seçim, sağ tık işlemleri, stok hareketleri, menü/aktif durumları, kategori raporu ve CSV dışa aktarımı korunur. Görsel, eski fiyat ve güncelleme bilgisi ürün ekranında bulunur.
+Build the private generator locally. It writes a six-character mixed license number and an expiry date to `license.json`.
 
-Negatif stok, yinelenen barkod/SKU ve pasif ürüne stok hareketi engellenir. Stok düzeltme **yeni toplam miktarı** belirler ve açıklama gerektirir. Fire için de açıklama gerekir. Ürün düzenleme stok hareketi oluşturmanın yerine geçmez. Yalnızca stoğu sıfır ürün silinebilir; geçmiş hareketler tutulur. Maksimum stok bir planlama eşiğidir, giriş engeli değildir.
+```powershell
+.\installer\Build-LicenseGenerator.ps1
+& .\artifacts\local-license-generator\R3LicenseGenerator.exe 365 .\artifacts\local-license-generator\license.json
+```
 
-## Etiket tasarımı
+Give the generated `license.json` to the customer. At first launch, select the file and enter the displayed six-character number. The Server stores its license in `%PROGRAMDATA%\R3-M-Kobi\license.json`; the Client stores it in `%LOCALAPPDATA%\R3-M-Kobi\license.json`. An expired license blocks the application and the Server service.
 
-1. **Etiket Şablonları → Hazır şablonları ekle** ile TTP-244CE dahil sekiz başlangıç tasarımı oluşturun veya **Etiket Tasarım Stüdyosu** açın.
-2. **Etiket ayarları** ile isim, mm boyutu, DPI, medya, kenar boşlukları, satır/sütun ve aralıkları düzenleyin. Boyut seçicisi 11 hazır ölçü sunar; özel ölçüler özellik panelinden girilir.
-3. Araçları tıklayarak veya kağıda sürükleyerek ekleyin. Nesneyi sürükleyerek taşıyın; sağ alt tutamacından boyutlandırın. Sağ panel konum, boyut, döndürme, görünürlük ve nesneye özgü ayarları düzenler.
-4. Metin, barkod, QR, görsel/logo, çizgi, dikdörtgen ve tam/kuruş ayrı fontlu büyük fiyat öğeleri desteklenir. Görseller şablon JSON'una gömülür; başka bilgisayara aktarımda ayrıca görsel dosyası gerekmez.
-5. Kaydet, Farklı kaydet; şablon ekranında Kopyala, Sil, İçe/Dışa aktar bulunur. 1,6 saniye hareketsizlikten sonra ayrı taslak kaydedilir. Kaydedilmemiş yeni tasarımlar da **Taslak kurtar** ile bulunabilir.
+## Server and Client
 
-Kısayollar: Delete, Ctrl+C/V/D, Ctrl+Z/Y/A/S; yön tuşları 0,1 mm, Shift+yön 5 mm. Metin/özellik editöründeyken standart metin kısayolları korunur. Geri alma geçmişi 60 adım saklar. Hareket sırasında diske kayıt yapılmaz.
+Install Server on the host computer and Client on other computers. The Server service listens on TCP 5088 and discovery uses UDP 5089. The administration screen shows the local address, external address and access key. Full setup and SQL import instructions are in [SERVER-CLIENT.md](docs/SERVER-CLIENT.md).
 
-Dinamik alanlar: `{{ProductName}}`, `{{Barcode}}`, `{{SKU}}`, `{{Price}}`, `{{OldPrice}}`, `{{Category}}`, `{{Unit}}`, `{{Description}}`, `{{Stock}}`, `{{Date}}`, `{{Time}}`. Bilinmeyen alan baskıyı durdurur. Fiyat biçimleri sembol başta/sonda, noktalı TL ve virgüllü TL'dir. Eski fiyat, ürün formunda 0 girildiğinde boş tutulur.
+## License
 
-EAN-13, EAN-8, Code 128, Code 39, UPC-A, UPC-E, ITF, Codabar ve QR desteklenir. Baskıda seçilen türe göre doğrulanır; EAN kontrol basamağı gerçektir. Bu doğrulama eski stok dosyasının yüklenmesini engellemez. Barkod alanı gerekli modül genişliğine sığmıyorsa baskı başlamadan hata verilir.
-
-## Yazıcı ve toplu baskı
-
-**Yazıcılar** Windows kurulu yazıcılarını, sürücü/port/default/kağıt ve mevcutsa DPI/durum bilgilerini listeler. Bunlar Windows'un bildirimidir; donanımın anlık sensör durumu garanti edilmez.
-
-Bir yazıcı seçin; sağ panelde **Dpi**, **Mode** ve açılabilir **Calibration** alanlarını ayarlayıp profili kaydedin. Desteklenen DPI: 203, 300, 600. Ayarlar → Yazıcı ayarları ve kalibrasyon aynı ekranı açar.
-
-- **WindowsDriver:** PrintDocument, özel sayfa boyutu ve sürücünün sert kenar boşluğu telafisi kullanılır. Sürücü gerçek kağıt boyutunu ve çözünürlüğü desteklemelidir. PDF gibi sanal yazıcılar kendi dosya diyaloglarını açabilir.
-- **RawTspl:** Yalnızca TSPL/TSPL2 uyumlu yazıcılarda seçin. TSC adı/sürücüsü algılandığında bilgi gösterilir. Başka bir dile ayarlı yazıcıda kullanmayın.
-
-**Barkod Yazdır** ekranında arayın/okutun, ürünleri sepete ekleyin, her ürünün adedini değiştirin. Adet çarpanı tüm satırlara uygulanır. Yazıcı, şablon, DPI ve medya seçin. Önizleme sayfası çok sütunlu/satırlı düzeni ve seçili sayfanın gerçek ürünlerini gösterir. Tek işte en fazla 10.000 etiket, RAW veri üretiminde 100 MB sınırı vardır. Büyük raster sayfalar için 40 milyon piksel sınırı uygulanır.
-
-**Baskı Kuyruğu** Queued / Printing / Completed / Failed durumlarını, hata ayrıntısını ve tekrar yazdırmayı sunar. Completed, Windows spooler'a teslim anlamındadır; fiziksel çıktı doğrulaması değildir. Uygulama kapanırken sürmekte olan iş açılışta belirsiz/başarısız olarak işaretlenir ve otomatik yeniden basılmaz. Başarısız işte kısmi çıktı olabileceği için tekrar basmadan mevcut etiketleri kontrol edin.
-
-## Ölçü ve renderer
-
-Tek kaynak `LabelTemplate` modelidir. Tüm ölçüler double mm saklanır; `dots = mm × DPI / 25.4`. Yuvarlama yalnızca son raster/dot sınırında yapılır.
-
-Designer, önizleme, Windows driver ve TSPL aynı `LabelPreviewRenderer` çizimini paylaşır. TSPL renderer, Türkçe/özel fontlar ve WYSIWYG için monokrom **BITMAP** kullanır. Ayrı `TsplCommandBuilder` ayrıca SIZE, GAP, BLINE, DIRECTION, REFERENCE, CLS, TEXT, BARCODE, QRCODE, BOX, BAR ve PRINT üretir. TSPL'de yatay çizgi komutu BAR'dır; olmayan bir LINE komutu gönderilmez. Native metin komutları güvenli ASCII ile sınırlandırılır; Türkçe raster olarak basılır.
-
-Windows spooler çağrıları SafeHandle, tam yazım kontrolü ve hata halinde AbortPrinter ile merkezileştirilmiştir. Baskı ve yazıcı keşfi UI iş parçacığını bloklamaz.
-
-## Donanım kabul testi
-
-Fiziksel TSC cihazında baskı bu geliştirme ortamında denenmedi. Sürümün iş yerine alınmasından önce:
-
-1. Yazıcının gerçek DPI ve medya/sensör ayarlarını doğrulayın.
-2. **Kalibrasyon test etiketi** ile 50×30 mm etiketi, 10 mm çizgiyi ve merkez/sınırları basın.
-3. Cetvelle ölçün; gerekirse yazıcı bazında X/Y ofset ve yatay/dikey ölçek ayarlayın. Ofset ±20 mm, ölçek 0,8–1,2 aralığındadır.
-4. Barkodu gerçek okuyucuyla okuyun; Türkçe font, dönüş, gap/black mark, toplu sayfa geçişi ve yeniden baskıyı deneyin.
-5. Windows 10/11 üzerinde gerçek 125/150/175/200% monitör ölçeklemelerinde ekranları kontrol edin. PerMonitorV2 yapılandırıldı; her fiziksel monitör kombinasyonu burada test edilmedi.
-
-## Veri konumları ve uyumluluk
-
-`%LOCALAPPDATA%\BarcodePro\` altında:
-
-- `inventory.db`: ürünler ve stok hareketleri için WAL ve transaction kullanan SQLite 3 veritabanı. Eski `inventory.json` yalnızca ilk migration kaynağıdır ve `.migrated.bak` kopyası korunur.
-- `images/`: ürün görselleri.
-- `templates/`: GUID adlarıyla JSON şablonlar, `.draft.json` taslaklar ve `.bak` yedekler.
-- `printers.json`: yazıcı profilleri ve kalibrasyon.
-- `print-queue.json`: baskı geçmişi ve iş anındaki ürün/şablon kopyaları.
-- `logs/`: teknik hata ayrıntıları.
-
-Server verisi `%PROGRAMDATA%\BarcodePro\Server\` altındadır; diğer kullanıcı ayarları yukarıdaki yerel klasördedir. Dosya kopyasıyla tam yedek alırken servisi ve yönetim uygulamasını durdurup klasörü WAL dosyalarıyla birlikte kopyalayın. SQLite içine gömülmüş ürün görselleri envanter dışa aktarımına dahildir; eski dosya yollarıyla kullanılan görseller ve etiket şablonları ayrıca yedeklenmelidir. Mobil arayüz ve kamera taraması bu masaüstü kapsamına dahil değildir.
-
-## Kaynak ve geliştirme kaydı
-
-Faz bazında dosyalar, doğrulama ve sınırlar: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md).
-TSPL sözdizimi [TSC TSPL/TSPL2 3.0 kılavuzuna](https://fs.tscprinters.com/system/files/31-0000001-00_tspl_tspl2_programming_3_0.pdf), barkod kodlayıcı [ZXing.Net projesine](https://github.com/micjahn/ZXing.Net) dayanır.
-
-## Güncel menü düzeni
-
-Referans ERP ekranına uygun olarak geniş ribbon yerine tek sıra ikonlu modül menüsü kullanılır. **Giriş / Ürünler / Stok / Etiket / Baskı / Raporlar / Yazıcılar / Ayarlar** başlıklarına basınca ilgili alt işlemler açılır. Hemen altındaki mavi şeritte açılan ekranlar arasında geçiş yapılır. Dashboard kartları ve Yeni ürün düğmesi pencere büyütüldüğünde gereksiz yere uzamaz.
+R3 M-Kobi is proprietary software. See [LICENSE](LICENSE). Third-party components retain their own licenses under `installer/licenses`.

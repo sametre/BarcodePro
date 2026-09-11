@@ -1,6 +1,7 @@
 using System.Globalization;
 using BarcodePrinter.Forms.Network;
 using BarcodePrinter.Services.Network;
+using BarcodePrinter.Services.Licensing;
 
 namespace BarcodePrinter;
 
@@ -13,6 +14,7 @@ internal static class Program
         string? Argument(string name){var index=Array.FindIndex(args,a=>a.Equals(name,StringComparison.OrdinalIgnoreCase));return index>=0&&index+1<args.Length?args[index+1]:null;}
         if(args.Contains("--service",StringComparer.OrdinalIgnoreCase))
         {
+            if (LicenseService.Validate(true) is string licenseError) { WriteServiceError(Argument("--data-dir"), new InvalidOperationException("License: " + licenseError)); Environment.ExitCode = 2; return; }
             try{LanInventoryServer.RunServiceAsync(Argument("--data-dir"),Argument("--service-name")??ServerConfiguration.ServiceName).GetAwaiter().GetResult();}
             catch(Exception ex){WriteServiceError(Argument("--data-dir"),ex);Environment.ExitCode=1;}
             return;
@@ -41,6 +43,8 @@ internal static class Program
         Application.ThreadException += (_, e) => { Helpers.JsonStore.Log(e.Exception); MessageBox.Show(e.Exception.Message, "R3 M-Kobi — İşlem hatası", MessageBoxButtons.OK, MessageBoxIcon.Warning); };
         try
         {
+            var serverLicense = args.Contains("--server", StringComparer.OrdinalIgnoreCase) || args.Contains("--server-admin", StringComparer.OrdinalIgnoreCase);
+            if (!EnsureLicense(serverLicense)) return;
             if(args.Contains("--server",StringComparer.OrdinalIgnoreCase)){Application.Run(new ServerStatusForm());return;}
             using var login=new LoginForm();if(login.ShowDialog()!=DialogResult.OK)return;
             new Services.Templates.TemplateService().InstallPresets();
@@ -52,6 +56,12 @@ internal static class Program
             Application.Run(new Form1(inventoryPath:args.Contains("--server-admin",StringComparer.OrdinalIgnoreCase)?ServerConfiguration.InventoryPath:null));
         }
         catch (Exception ex) { MessageBox.Show("Uygulama başlatılamadı. Mevcut veriler korunmuştur. SQLite veritabanını, eski JSON migration yedeğini ve Server bağlantısını kontrol edin.\n\n" + ex.Message, "R3 M-Kobi", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+    }
+    private static bool EnsureLicense(bool server)
+    {
+        if (LicenseService.Validate(server) is null) return true;
+        using var activation = new LicenseActivationForm(server);
+        return activation.ShowDialog() == DialogResult.OK && LicenseService.Validate(server) is null;
     }
     private static void WriteServiceError(string? directory,Exception error)
     {
