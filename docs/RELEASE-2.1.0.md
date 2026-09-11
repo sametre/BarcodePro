@@ -16,6 +16,8 @@ Ana bilgisayara Server Setup, diğer bilgisayarlara Client Setup kurulur. Window
 
 Veri: `%PROGRAMDATA%\BarcodePro\Server\inventory.db`. Eski yerel envanter ilk Server kurulumunda taşınır; mevcut merkezî veri güncelleme ve kaldırmada korunur. Genel GitHub paketleri müşteri ürünlerini veya bağlantı şifrelerini içermez.
 
+Release içinde ayrıca açık istekle hazırlanan `BarcodePro-Server-2.1.0-Customer-Setup-x64.exe` bulunur. Bu paket, `products_202609101848.sql` dosyasından aktarılan 597 ürünü ve toplam 251 stok miktarını ilk Server veritabanına alır. Kaynakta yalnız görsel yolları bulunduğu için gerçek görsel dosyaları gömülmemiştir.
+
 ## Doğrulama ve sınırlar
 
 189 uygulama kontrolü ve gerçek Windows ortamında 16 yönetici servis kontrolü geçti. Servis yeniden başlatma, CRUD, stok geçmişi, erişim anahtarı, dosya izinleri ve güvenlik duvarı kapsamı test edildi. Server/Client Setup kurulum-kaldırma ve dosya bütünlüğü ayrıca doğrulanır.
