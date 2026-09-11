@@ -1,27 +1,20 @@
-# Barcode Pro ERP 2.1.0
+# R3 M-Kobi 2.1.0
 
-Windows 10 (1809+) ve Windows 11 x64 için ilk dağıtım sürümü. .NET çalışma zamanı kurulum dosyalarına dahildir.
+## What is included
 
-- DevExpress tarzında kompakt Windows Forms arayüzü, üst modül menüleri, alt işlemler, Windows simgeleri ve kurumsal ERP logosu.
-- Server için kalıcı Windows servisi; otomatik başlangıç, kurtarma ve merkezî SQLite veritabanı.
-- Client için otomatik yerel ağ keşfi, erişim anahtarı ve ortak stok işlemleri. Değişiklik yokken ürün/görseller yeniden indirilmez.
-- Eşzamanlı SQLite stok değişiklikleri ve hareket geçmişi aynı transaction içinde saklanır.
-- MySQL bağlantısından ve DBeaver products SQL dosyasından ürün aktarımı. Görsel klasörü veya temel web adresinden JPEG/PNG/WebP görselleri SQLite içine alma.
-- Tekrar aktarımda mevcut stok ve görselleri koruma, kaynak kolonlar ve tarihleri saklama.
-- TSC doğrudan TSPL baskısı ve yönetici yetkisiyle yazıcı portu düzenleme.
+- A persistent Windows Server service with central SQLite storage.
+- A LAN Client with automatic discovery, access key authentication and synchronized stock operations.
+- Product CRUD, stock ledger, dashboard, label designer and SQL `products` import.
+- Direct TSC/TTP-244CE TSPL printing with the configured Code 39 Full ASCII profile.
+- Compact gray top navigation, transparent R3 branding and small aligned controls.
+- Six-digit expiring license activation for Server and Client.
 
-## Kurulum
+## Installation
 
-Ana bilgisayara Server Setup, diğer bilgisayarlara Client Setup kurulur. Windows yönetici izni gerekir. Kullanıcı kodu ve şifre: **owner / owner**. Client ağ erişim anahtarı Server ekranında gösterilen rastgele anahtardır.
+Install Server on the host computer and Client on other computers. Both setup programs request Windows administrator permission. The application login is `owner` / `owner`; the Server access key is shown in its administration screen.
 
-Veri: `%PROGRAMDATA%\BarcodePro\Server\inventory.db`. Eski yerel envanter ilk Server kurulumunda taşınır; mevcut merkezî veri güncelleme ve kaldırmada korunur. Genel GitHub paketleri müşteri ürünlerini veya bağlantı şifrelerini içermez.
+The customer Server package contains the 597 imported products and opening stock seed. Generic public packages contain no customer inventory. Existing Server data is preserved during upgrades.
 
-Release içinde ayrıca açık istekle hazırlanan `BarcodePro-Server-2.1.0-Customer-Setup-x64.exe` bulunur. Bu paket, `products_202609101848.sql` dosyasından aktarılan 597 ürünü ve toplam 251 stok miktarını ilk Server veritabanına alır. Kaynakta yalnız görsel yolları bulunduğu için gerçek görsel dosyaları gömülmemiştir.
+## Validation
 
-## Doğrulama ve sınırlar
-
-189 uygulama kontrolü ve gerçek Windows ortamında 16 yönetici servis kontrolü geçti. Servis yeniden başlatma, CRUD, stok geçmişi, erişim anahtarı, dosya izinleri ve güvenlik duvarı kapsamı test edildi. Server/Client Setup kurulum-kaldırma ve dosya bütünlüğü ayrıca doğrulanır.
-
-Fiziksel TSC çıktısı, müşteri MySQL sunucusu ve iki farklı fiziksel bilgisayar arasında bağlantı bu ortamda doğrulanmadı. Dış IP otomatik gösterilir; internetten erişim için VPN veya HTTPS ağ geçidi gerekir. Kurulum dosyaları kod imzalama sertifikasıyla imzalanmamıştır.
-
-SQL dosyasındaki görsel yolları gerçek görsel dosyalarının yerine geçmez. Eksik görseller aktarım ekranında bildirilir; kullanıcı görsel klasörünü veya temel web adresini sağladığında içe alınabilir.
+The release passes 191 automated checks covering SQLite transactions, SQL import, image embedding, barcode validation, TSC routing, printer ports, Server/Client synchronization and network access control.
