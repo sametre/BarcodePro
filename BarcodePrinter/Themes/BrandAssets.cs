@@ -8,17 +8,18 @@ public static class BrandAssets
         var image=new Bitmap(size,size);using var g=Graphics.FromImage(image);g.SmoothingMode=SmoothingMode.AntiAlias;g.ScaleTransform(size/64f,size/64f);
         g.Clear(Color.Transparent);
 
-        // Connected ERP modules and a barcode form a compact, recognizable application mark.
-        using var gradBrush=new LinearGradientBrush(new Point(0,0),new Point(64,64),Color.FromArgb(29,57,88),Color.FromArgb(14,31,52));
+        // ERP module mark: stock, sales and reporting blocks over a barcode base.
+        using var gradBrush=new LinearGradientBrush(new Point(0,0),new Point(64,64),Color.FromArgb(74,81,89),Color.FromArgb(37,42,48));
         using var bgPath=new GraphicsPath();
         bgPath.AddArc(0,0,20,20,180,90);bgPath.AddArc(44,0,20,20,270,90);bgPath.AddArc(44,44,20,20,0,90);bgPath.AddArc(0,44,20,20,90,90);bgPath.CloseFigure();
         g.FillPath(gradBrush,bgPath);
 
-        using var whiteBrush=new SolidBrush(Color.FromArgb(244,248,252));
-        using var blueBrush=new SolidBrush(Color.FromArgb(84,167,238));
-        g.FillRectangle(whiteBrush,12,13,17,14);g.FillRectangle(blueBrush,35,13,17,14);
-        using var link=new Pen(Color.FromArgb(172,194,216),2);g.DrawLine(link,20,27,20,32);g.DrawLine(link,43,27,43,32);g.DrawLine(link,20,31,43,31);
-        foreach(var bar in new[]{(13,2),(18,4),(25,2),(30,5),(38,2),(43,3),(49,2)})g.FillRectangle(whiteBrush,bar.Item1,37,bar.Item2,14);
+        using var whiteBrush=new SolidBrush(Color.FromArgb(242,244,246));
+        using var accentBrush=new SolidBrush(Color.FromArgb(177,185,193));
+        g.FillRectangle(whiteBrush,10,12,13,14);g.FillRectangle(accentBrush,26,12,13,14);g.FillRectangle(whiteBrush,42,12,13,14);
+        using var link=new Pen(Color.FromArgb(210,216,221),2);g.DrawLine(link,16,27,16,32);g.DrawLine(link,32,27,32,32);g.DrawLine(link,48,27,48,32);g.DrawLine(link,16,31,48,31);
+        using var erpFont=new Font("Segoe UI",10,FontStyle.Bold,GraphicsUnit.Pixel);using var sf=new StringFormat{Alignment=StringAlignment.Center,LineAlignment=StringAlignment.Center};g.DrawString("ERP",erpFont,whiteBrush,new RectangleF(9,8,46,20),sf);
+        foreach(var bar in new[]{(12,2),(17,4),(24,2),(29,5),(37,2),(42,3),(49,2)})g.FillRectangle(whiteBrush,bar.Item1,38,bar.Item2,13);
 
         return image;
     }
