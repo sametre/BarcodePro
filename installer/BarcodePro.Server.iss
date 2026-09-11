@@ -79,7 +79,7 @@ procedure CurStepChanged(CurStep: TSetupStep);
 begin
   if CurStep = ssPostInstall then
     if not ConfigureServer(ExpandConstant('{app}\Configure-BarcodeProServer.ps1'), '') then
-      RaiseException('Server servisi veya ag ayarlari tamamlanamadi. ProgramData\BarcodePro\Server\service-error.log dosyasini kontrol edin. Kurulumu tekrar calistirarak onarin.');
+      MsgBox('Server servisi kurulumu tamamlanamadi. Kurulum tamamlandi; Server uygulamasini yonetici olarak actiginizda servis otomatik olarak olusturulacaktir.', mbInformation, MB_OK);
 end;
 
 function InitializeUninstall(): Boolean;
