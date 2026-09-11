@@ -48,7 +48,7 @@ Stop-BarcodeService
 
 # Executables are installed in Program Files; only this service, Administrators and SYSTEM can change data.
 New-Item -ItemType Directory -Path $DataDir -Force | Out-Null
-$binaryPath = '"' + $exePath + '" --service --data-dir "' + $DataDir + '" --service-name ' + $ServiceName
+$binaryPath = '"' + $exePath + '" --service --data-dir "' + $DataDir + '" --service-name "' + $ServiceName + '"'
 if (!(Get-Service -Name $ServiceName -ErrorAction SilentlyContinue)) {
     Invoke-ServiceCommand @('create',$ServiceName,'binPath=',$binaryPath,'start=','delayed-auto','obj=',('NT SERVICE\'+$ServiceName),'DisplayName=','Barcode Pro Server')
 } else {
