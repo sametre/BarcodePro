@@ -7,6 +7,7 @@ internal static class Program
     {
         if(args.Length>=3 && args[0]=="--customer-seed") { CustomerSeedPreparation.Run(args[1],args[2],args.Length>3?args[3]:null,args.Length>4?args[4]:null); return; }
         if(args.Length>=3 && args[0]=="--customer-import") { CustomerSeedPreparation.ImportExisting(args[1],args[2],args.Length>3?args[3]:null,args.Length>4?args[4]:null); return; }
+        if(args.Length>=3 && args[0]=="--export-json") { CustomerSeedPreparation.ExportJson(args[1],args[2]); return; }
         if(args.Length == 2 && args[0] == "--brand-assets") { Directory.CreateDirectory(args[1]); File.WriteAllBytes(Path.Combine(args[1], "BarcodePro.ico"), BarcodePrinter.Themes.BrandAssets.CreateIcon()); using var mark = BarcodePrinter.Themes.BrandAssets.CreateMark(512); mark.Save(Path.Combine(args[1], "BarcodePro.png"), System.Drawing.Imaging.ImageFormat.Png); return; }
         var directory = Path.Combine(Path.GetTempPath(), "BarcodePro-checks-" + Guid.NewGuid());
         Directory.CreateDirectory(directory);

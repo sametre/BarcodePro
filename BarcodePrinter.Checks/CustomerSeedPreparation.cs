@@ -5,6 +5,13 @@ using System.Text.Json;
 
 internal static class CustomerSeedPreparation
 {
+    public static void ExportJson(string databasePath, string jsonPath)
+    {
+        var inventory = new Inventory(databasePath);
+        var options = new JsonSerializerOptions { WriteIndented = true, PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+        File.WriteAllText(Path.GetFullPath(jsonPath), JsonSerializer.Serialize(inventory.Data, options));
+        Console.WriteLine($"JSON exported: {inventory.Data.Products.Count} products, {inventory.Data.Movements.Count} movements -> {Path.GetFullPath(jsonPath)}");
+    }
     public static void ImportExisting(string sqlPath, string targetDatabase, string? imageDirectory = null, string? imageBaseUrl = null)
     {
         var parsed = ProductSqlImport.ReadFile(sqlPath);
