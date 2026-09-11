@@ -37,14 +37,14 @@ Setup files are created under `artifacts/installer`. Public packages contain no 
 
 ## Local license generator
 
-Build the private generator locally. It writes a six-character mixed license number and an expiry date to `license.json`.
+Build the private generator locally. It writes a random six-digit license number and an expiry date to `license.json`.
 
 ```powershell
 .\installer\Build-LicenseGenerator.ps1
 & .\artifacts\local-license-generator\R3LicenseGenerator.exe 365 .\artifacts\local-license-generator\license.json
 ```
 
-Give the generated `license.json` to the customer. At first launch, select the file and enter the displayed six-character number. The Server stores its license in `%PROGRAMDATA%\R3-M-Kobi\license.json`; the Client stores it in `%LOCALAPPDATA%\R3-M-Kobi\license.json`. An expired license blocks the application and the Server service.
+Give the generated `license.json` to the customer. At first launch, select the file and enter the displayed six-digit number. The Server stores its license in `%PROGRAMDATA%\R3-M-Kobi\license.json`; the Client stores it in `%LOCALAPPDATA%\R3-M-Kobi\license.json`. An expired license blocks the application and the Server service.
 
 ## Server and Client
 

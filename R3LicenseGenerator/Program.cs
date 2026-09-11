@@ -5,6 +5,6 @@ var output = args.Length > 1 ? Path.GetFullPath(args[1]) : Path.Combine(Environm
 var license = LicenseService.Create(days);
 Directory.CreateDirectory(Path.GetDirectoryName(output)!);
 File.WriteAllText(output, System.Text.Json.JsonSerializer.Serialize(license, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }));
-Console.WriteLine($"R3 M-Kobi license created: {license.Key}");
+Console.WriteLine($"R3 M-Kobi license created (6 digits): {license.Key}");
 Console.WriteLine($"Expires (UTC): {license.ExpiresAtUtc:O}");
 Console.WriteLine($"File: {output}");

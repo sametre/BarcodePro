@@ -10,7 +10,7 @@ public sealed record LicenseInfo(string Key, DateTimeOffset ExpiresAtUtc, string
 public static class LicenseService
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web) { WriteIndented = true };
-    private const string Alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    private const string Alphabet = "0123456789";
     public static string Root(bool server) => server ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "R3-M-Kobi") : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "R3-M-Kobi");
     public static string PathFor(bool server) => Path.Combine(Root(server), "license.json");
     public static LicenseInfo Create(int validDays)
@@ -28,8 +28,8 @@ public static class LicenseService
     public static string? Validate(bool server)
     {
         var info = Read(server); if (info is null) return "Lisans dosyası bulunamadı.";
-        if (!System.Text.RegularExpressions.Regex.IsMatch(info.Key ?? "", "^[A-Z0-9]{6}$")) return "Lisans anahtarı 6 karakter olmalıdır.";
-        if (!info.Product.Equals("R3 M-Kobi", StringComparison.OrdinalIgnoreCase)) return "Lisans başka bir ürüne ait.";
+        if (!System.Text.RegularExpressions.Regex.IsMatch(info.Key ?? "", "^\\d{6}$")) return "Lisans numarası 6 rakam olmalıdır.";
+        if (!string.Equals(info.Product, "R3 M-Kobi", StringComparison.OrdinalIgnoreCase)) return "Lisans başka bir ürüne ait.";
         return info.ExpiresAtUtc <= DateTimeOffset.UtcNow ? $"Lisans süresi doldu ({info.ExpiresAtUtc:dd.MM.yyyy})." : null;
     }
     public static void Save(LicenseInfo info, bool server)
@@ -46,5 +46,5 @@ public static class LicenseService
         if (ValidateInfo(info) is string error) { message = error; return false; }
         Save(info, server); message = $"Lisans etkinleştirildi. Bitiş: {info.ExpiresAtUtc:dd.MM.yyyy}"; return true;
     }
-    private static string? ValidateInfo(LicenseInfo info) => string.IsNullOrWhiteSpace(info.Key) || !System.Text.RegularExpressions.Regex.IsMatch(info.Key, "^[A-Z0-9]{6}$") ? "Geçersiz 6 karakterli lisans numarası." : info.ExpiresAtUtc <= DateTimeOffset.UtcNow ? "Lisans süresi dolmuş." : !info.Product.Equals("R3 M-Kobi", StringComparison.OrdinalIgnoreCase) ? "Lisans ürünü geçersiz." : null;
+    private static string? ValidateInfo(LicenseInfo info) => string.IsNullOrWhiteSpace(info.Key) || !System.Text.RegularExpressions.Regex.IsMatch(info.Key, "^\\d{6}$") ? "Geçersiz 6 haneli lisans numarası." : info.ExpiresAtUtc <= DateTimeOffset.UtcNow ? "Lisans süresi dolmuş." : !string.Equals(info.Product, "R3 M-Kobi", StringComparison.OrdinalIgnoreCase) ? "Lisans ürünü geçersiz." : null;
 }

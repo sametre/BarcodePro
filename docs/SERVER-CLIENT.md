@@ -19,7 +19,7 @@ The application login is `owner` / `owner`. This is separate from the network ac
 
 ## Licensing
 
-Both editions require a valid `license.json`. The private local generator creates a six-character mixed key and expiry date. Copy the file to the activation screen and enter the key. Server licenses are stored under `%PROGRAMDATA%\R3-M-Kobi`; Client licenses are stored under `%LOCALAPPDATA%\R3-M-Kobi`. An expired license stops the application and the Server service.
+Both editions require a valid `license.json`. The private local generator creates a random six-digit number and expiry date. Copy the file to the activation screen and enter the number. Server licenses are stored under `%PROGRAMDATA%\R3-M-Kobi`; Client licenses are stored under `%LOCALAPPDATA%\R3-M-Kobi`. An expired license stops the application and the Server service.
 
 ## Network and permissions
 

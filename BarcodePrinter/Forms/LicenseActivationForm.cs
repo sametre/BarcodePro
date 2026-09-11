@@ -12,7 +12,7 @@ public sealed class LicenseActivationForm : AppWindow
         foreach (var h in new[] { 42, 30, 28, 34, 38, 36, 24 }) layout.RowStyles.Add(new RowStyle(SizeType.Absolute, h));
         var title = new Label { Text = "R3 M-Kobi license", Dock = DockStyle.Fill, Font = new Font("Segoe UI", 15, FontStyle.Bold), TextAlign = ContentAlignment.MiddleCenter };
         var info = new Label { Text = $"{(server ? "Server" : "Client")} requires a valid license file.", Dock = DockStyle.Fill, TextAlign = ContentAlignment.MiddleCenter, ForeColor = Themes.ThemeManager.Current.Muted };
-        var key = new AppTextBox { PlaceholderText = "6-character license number", Dock = DockStyle.Fill, CharacterCasing = CharacterCasing.Upper, MaxLength = 6 };
+        var key = new AppTextBox { PlaceholderText = "6-digit license number", Dock = DockStyle.Fill, MaxLength = 6 };
         var file = new AppTextBox { ReadOnly = true, Dock = DockStyle.Fill };
         var browse = new AppButton { Text = "License file", IconKind = AppIcon.Template, Dock = DockStyle.Fill };
         var activate = new AppButton { Text = "Activate", IconKind = AppIcon.Save, Tag = "primary", Dock = DockStyle.Top, Height = 30 };
