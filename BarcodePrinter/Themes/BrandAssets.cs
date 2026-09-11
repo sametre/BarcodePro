@@ -5,30 +5,11 @@ public static class BrandAssets
 {
     public static Bitmap CreateMark(int size)
     {
-        using (var resource=typeof(BrandAssets).Assembly.GetManifestResourceStream("BarcodePrinter.Assets.R3-M-Kobi-Jupiter.png"))
-        using (var source=resource is null?null:Image.FromStream(resource))
-        {
-            if(source is not null)
-            {
-                var icon=new Bitmap(size,size);using var canvas=Graphics.FromImage(icon);canvas.Clear(Color.FromArgb(54,60,67));canvas.InterpolationMode=System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;canvas.DrawImage(source,new Rectangle(0,0,size,size));return icon;
-            }
-        }
-        var image=new Bitmap(size,size);using var g=Graphics.FromImage(image);g.SmoothingMode=SmoothingMode.AntiAlias;g.ScaleTransform(size/64f,size/64f);
-        g.Clear(Color.Transparent);
-
-        // ERP module mark: stock, sales and reporting blocks over a barcode base.
-        using var gradBrush=new LinearGradientBrush(new Point(0,0),new Point(64,64),Color.FromArgb(74,81,89),Color.FromArgb(37,42,48));
-        using var bgPath=new GraphicsPath();
-        bgPath.AddArc(0,0,20,20,180,90);bgPath.AddArc(44,0,20,20,270,90);bgPath.AddArc(44,44,20,20,0,90);bgPath.AddArc(0,44,20,20,90,90);bgPath.CloseFigure();
-        g.FillPath(gradBrush,bgPath);
-
-        using var whiteBrush=new SolidBrush(Color.FromArgb(242,244,246));
-        using var accentBrush=new SolidBrush(Color.FromArgb(177,185,193));
-        g.FillRectangle(whiteBrush,10,12,13,14);g.FillRectangle(accentBrush,26,12,13,14);g.FillRectangle(whiteBrush,42,12,13,14);
-        using var link=new Pen(Color.FromArgb(210,216,221),2);g.DrawLine(link,16,27,16,32);g.DrawLine(link,32,27,32,32);g.DrawLine(link,48,27,48,32);g.DrawLine(link,16,31,48,31);
-        using var erpFont=new Font("Segoe UI",10,FontStyle.Bold,GraphicsUnit.Pixel);using var sf=new StringFormat{Alignment=StringAlignment.Center,LineAlignment=StringAlignment.Center};g.DrawString("ERP",erpFont,whiteBrush,new RectangleF(9,8,46,20),sf);
-        foreach(var bar in new[]{(12,2),(17,4),(24,2),(29,5),(37,2),(42,3),(49,2)})g.FillRectangle(whiteBrush,bar.Item1,38,bar.Item2,13);
-
+        var image=new Bitmap(size,size);using var g=Graphics.FromImage(image);g.SmoothingMode=SmoothingMode.AntiAlias;g.Clear(Color.Transparent);g.ScaleTransform(size/64f,size/64f);
+        using var bg=new SolidBrush(Color.FromArgb(82,88,95));using var path=new GraphicsPath();
+        path.AddArc(2,2,18,18,180,90);path.AddArc(44,2,18,18,270,90);path.AddArc(44,44,18,18,0,90);path.AddArc(2,44,18,18,90,90);path.CloseFigure();g.FillPath(bg,path);
+        using var ring=new Pen(Color.FromArgb(164,169,175),2);g.DrawPath(ring,path);
+        using var textBrush=new SolidBrush(Color.FromArgb(240,242,244));using var font=new Font("Segoe UI",24,FontStyle.Bold,GraphicsUnit.Pixel);using var format=new StringFormat{Alignment=StringAlignment.Center,LineAlignment=StringAlignment.Center};g.DrawString("R3",font,textBrush,new RectangleF(4,10,56,38),format);
         return image;
     }
     public static byte[] CreateIcon()
