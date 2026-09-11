@@ -15,10 +15,10 @@ public static class LicenseService
     public static string PathFor(bool server) => Path.Combine(Root(server), "license.json");
     public static LicenseInfo Create(int validDays)
     {
-        if (validDays is < 1 or > 3650) throw new ArgumentOutOfRangeException(nameof(validDays));
+        if (validDays is not (-1) and (< 1 or > 3650)) throw new ArgumentOutOfRangeException(nameof(validDays));
         Span<byte> bytes = stackalloc byte[6]; RandomNumberGenerator.Fill(bytes);
         var key = string.Concat(bytes.ToArray().Select(b => Alphabet[b % Alphabet.Length]));
-        return new LicenseInfo(key, DateTimeOffset.UtcNow.AddDays(validDays));
+        return new LicenseInfo(key, validDays == -1 ? DateTimeOffset.MaxValue : DateTimeOffset.UtcNow.AddDays(validDays));
     }
     public static LicenseInfo? Read(bool server)
     {

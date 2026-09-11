@@ -42,6 +42,8 @@ Build the private generator locally. It writes a random six-digit license number
 ```powershell
 .\installer\Build-LicenseGenerator.ps1
 & .\artifacts\local-license-generator\R3LicenseGenerator.exe 365 .\artifacts\local-license-generator\license.json
+# Unlimited license:
+& .\artifacts\local-license-generator\R3LicenseGenerator.exe unlimited .\artifacts\local-license-generator\license-unlimited.json
 ```
 
 Give the generated `license.json` to the customer. At first launch, select the file and enter the displayed six-digit number. The Server stores its license in `%PROGRAMDATA%\R3-M-Kobi\license.json`; the Client stores it in `%LOCALAPPDATA%\R3-M-Kobi\license.json`. An expired license blocks the application and the Server service.
