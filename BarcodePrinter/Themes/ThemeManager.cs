@@ -6,13 +6,13 @@ public static class ThemeManager
     public static bool IsDark { get; private set; } = false;
     public static AppTheme Current => IsDark
         ? new(Color.FromArgb(30,33,38),Color.FromArgb(39,43,49),Color.FromArgb(235,237,240),Color.FromArgb(164,172,183),Color.FromArgb(65,72,82),Color.FromArgb(64,136,212),Color.FromArgb(52,80,110),Color.FromArgb(28,32,38),Color.FromArgb(54,63,75),Color.FromArgb(21,27,34),Color.FromArgb(40,76,116),Color.FromArgb(36,64,97))
-        : new(Color.FromArgb(237,240,244),Color.White,Color.FromArgb(36,43,52),Color.FromArgb(100,111,125),Color.FromArgb(196,204,214),Color.FromArgb(36,104,171),Color.FromArgb(214,230,246),Color.FromArgb(41,47,55),Color.FromArgb(60,72,87),Color.FromArgb(27,35,46),Color.FromArgb(36,104,171),Color.FromArgb(30,85,141));
+        : new(Color.FromArgb(232,234,237),Color.White,Color.FromArgb(42,46,51),Color.FromArgb(100,106,114),Color.FromArgb(190,195,201),Color.FromArgb(82,89,97),Color.FromArgb(218,222,227),Color.FromArgb(88,95,103),Color.FromArgb(108,115,123),Color.FromArgb(66,72,80),Color.FromArgb(106,112,120),Color.FromArgb(86,92,100));
     public static void Toggle() { IsDark=!IsDark;foreach(Form form in Application.OpenForms)Apply(form); }
     public static void Apply(Control root)
     {
         var t = Current;
-        root.BackColor = root is Form || root.Tag as string == "canvas" ? t.Background : t.Surface;
-        root.ForeColor = root.Tag as string == "accent" ? t.Accent : t.Foreground;
+        root.BackColor = root is Form || root.Tag as string == "canvas" ? t.Background : root.Tag as string == "section-heading" ? t.ButtonGray : t.Surface;
+        root.ForeColor = root.Tag as string is "accent" ? t.Accent : root.Tag as string == "section-heading" ? Color.White : t.Foreground;
 
         if (root is BarcodePrinter.Controls.Common.AppButton appButton)
         {

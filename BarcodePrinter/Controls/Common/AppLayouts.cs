@@ -23,7 +23,7 @@ public sealed class AppSection : Panel
     public AppSection(string title)
     {
         Dock=DockStyle.Fill;Margin=new Padding(0,0,8,0);Padding=new Padding(1);
-        var heading=new Label{Text=title,Dock=DockStyle.Top,Height=28,Padding=new Padding(8,6,0,0),Font=new Font("Segoe UI",9,FontStyle.Bold)};
+        var heading=new Label{Text=title,Dock=DockStyle.Top,Height=28,Padding=new Padding(8,6,0,0),Font=new Font("Segoe UI",9,FontStyle.Bold),BackColor=ThemeManager.Current.ButtonGray,ForeColor=Color.White,Tag="section-heading"};
         Controls.Add(Body);Controls.Add(heading);
     }
     protected override void OnPaint(PaintEventArgs e){base.OnPaint(e);using var pen=new Pen(ThemeManager.Current.Border);e.Graphics.DrawRectangle(pen,0,0,Width-1,Height-1);}

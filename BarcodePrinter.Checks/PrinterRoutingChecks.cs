@@ -19,6 +19,7 @@ internal static class PrinterRoutingChecks
         }
         foreach(string port in new[]{"USB001","IP_192.168.1.10","WSD-123","\\\\server\\TSC"}){PrinterRouting.ValidatePort("TSC",port);Check(true,"Physical queue port accepted: "+port);}
         Check(PrinterRouting.AutomaticCandidates(["FILE:","COM1:","USB002","USB001","IP_10.0.0.4"]).SequenceEqual(["USB002","USB001"]),"Automatic routing prioritizes USB and excludes file ports");
+        Check(PrinterRouting.IsUsbPort("USB2")&&PrinterRouting.IsUsbPort("USB002"),"USB2 and USB002 are recognized as physical ports");
         using var form=new BarcodePrintForm([]);form.Show();Application.DoEvents();
         object Field(string name)=>typeof(BarcodePrintForm).GetField(name,BindingFlags.NonPublic|BindingFlags.Instance)!.GetValue(form)!;
         var printers=(ComboBox)Field("printers");var mode=(ComboBox)Field("mode");var dpi=(ComboBox)Field("dpi");var devices=(Dictionary<string,PrinterInfo>)Field("discovered");

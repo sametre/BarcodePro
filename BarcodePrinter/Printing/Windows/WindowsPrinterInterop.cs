@@ -26,6 +26,7 @@ internal static class WindowsPrinterInterop
     [DllImport("winspool.drv",EntryPoint="StartDocPrinterW",CharSet=CharSet.Unicode,SetLastError=true)] internal static extern uint StartDocPrinter(PrinterHandle handle,int level,ref DocInfo doc);
     [DllImport("winspool.drv",SetLastError=true)] internal static extern bool StartPagePrinter(PrinterHandle handle);
     [DllImport("winspool.drv",SetLastError=true)] internal static extern bool WritePrinter(PrinterHandle handle,IntPtr bytes,int length,out int written);
+    [DllImport("winspool.drv",SetLastError=true)] internal static extern bool FlushPrinter(PrinterHandle handle,IntPtr bytes,int length,out int written,int completion);
     [DllImport("winspool.drv",SetLastError=true)] internal static extern bool EndPagePrinter(PrinterHandle handle);
     [DllImport("winspool.drv",SetLastError=true)] internal static extern bool EndDocPrinter(PrinterHandle handle);
     [DllImport("winspool.drv",SetLastError=true)] internal static extern bool AbortPrinter(PrinterHandle handle);
@@ -77,7 +78,9 @@ public sealed class RawPrinterService
                 WindowsPrinterInterop.Ensure(WindowsPrinterInterop.StartPagePrinter(handle));
                 var pin=GCHandle.Alloc(data,GCHandleType.Pinned);
                 try { int offset=0; while(offset<data.Length) { WindowsPrinterInterop.Ensure(WindowsPrinterInterop.WritePrinter(handle,IntPtr.Add(pin.AddrOfPinnedObject(),offset),data.Length-offset,out int written)); if(written<=0) throw new IOException("Spooler veri kabul etmedi."); offset+=written; } } finally { pin.Free(); }
-                WindowsPrinterInterop.Ensure(WindowsPrinterInterop.EndPagePrinter(handle)); WindowsPrinterInterop.Ensure(WindowsPrinterInterop.EndDocPrinter(handle)); started=false;
+                WindowsPrinterInterop.Ensure(WindowsPrinterInterop.FlushPrinter(handle,IntPtr.Zero,0,out _,0));
+                WindowsPrinterInterop.Ensure(WindowsPrinterInterop.EndPagePrinter(handle));
+                WindowsPrinterInterop.Ensure(WindowsPrinterInterop.EndDocPrinter(handle)); started=false;
             }
             finally { if(started) WindowsPrinterInterop.AbortPrinter(handle); }
         }

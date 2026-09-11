@@ -35,11 +35,12 @@ public sealed class FloatingFormContainer : Panel
         Controls.Clear();
 
         // Başlık çubuğu oluştur
+        var theme=ThemeManager.Current;
         _titleBar = new Panel
         {
             Dock = DockStyle.Top,
             Height = 36,
-            BackColor = Color.FromArgb(52, 152, 219),
+            BackColor = theme.ButtonGray,
             Padding = new Padding(12, 6, 8, 6)
         };
 
@@ -58,7 +59,7 @@ public sealed class FloatingFormContainer : Panel
             Width = 28,
             Height = 28,
             FlatStyle = FlatStyle.Flat,
-            BackColor = Color.FromArgb(52, 152, 219),
+            BackColor = theme.ButtonGray,
             ForeColor = Color.White,
             Font = new Font("Segoe UI", 10, FontStyle.Bold),
             Dock = DockStyle.Right,
@@ -66,11 +67,11 @@ public sealed class FloatingFormContainer : Panel
         };
 
         _closeButton.FlatAppearance.BorderSize = 0;
-        _closeButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(231, 76, 60);
-        _closeButton.FlatAppearance.MouseDownBackColor = Color.FromArgb(192, 57, 43);
+        _closeButton.FlatAppearance.MouseOverBackColor = Color.FromArgb(120, 82, 82);
+        _closeButton.FlatAppearance.MouseDownBackColor = Color.FromArgb(96, 62, 62);
         _closeButton.Click += (_,_) => CloseForm();
-        _closeButton.MouseEnter += (_,_) => _closeButton.BackColor = Color.FromArgb(231, 76, 60);
-        _closeButton.MouseLeave += (_,_) => _closeButton.BackColor = Color.FromArgb(52, 152, 219);
+        _closeButton.MouseEnter += (_,_) => _closeButton.BackColor = Color.FromArgb(120, 82, 82);
+        _closeButton.MouseLeave += (_,_) => _closeButton.BackColor = theme.ButtonGray;
 
         // Başlık çubuğu drag işlemi
         _titleBar.MouseDown += TitleBar_MouseDown;

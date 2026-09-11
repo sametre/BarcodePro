@@ -20,7 +20,7 @@ public sealed class AppModuleMenu : ToolStrip
     }
     public void AddAction(string title,AppIcon icon,Action action)
     {
-        var image=AppIcons.Create(icon,Color.IndianRed,20);icons.Add(image);Items.Add(new ToolStripButton(title,image,(_,_)=>action()){AutoSize=false,Size=new Size(62,43),TextImageRelation=TextImageRelation.ImageAboveText,ImageScaling=ToolStripItemImageScaling.None});
+        var image=AppIcons.Create(icon,ThemeManager.Current.ButtonGray,20);icons.Add(image);Items.Add(new ToolStripButton(title,image,(_,_)=>action()){AutoSize=false,Size=new Size(62,43),TextImageRelation=TextImageRelation.ImageAboveText,ImageScaling=ToolStripItemImageScaling.None});
     }
     public void AddSearch(Action<string> search)
     {
